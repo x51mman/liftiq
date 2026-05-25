@@ -1,0 +1,523 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  taxNumber String?   @map("tax_number") @db.VarChar(50)
+  email     String?   @db.VarChar(255)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  customers         Customer[]
+  documentSequences DocumentSequence[]
+  documents         Document[]
+  payments          Payment[]
+  products          Product[]
+  roles             Role[]
+  stockMovements    StockMovement[]
+  stockReservations StockReservation[]
+  users             User[]
+  warehouses        Warehouse[]
+  loginHistory      LoginHistory[]
+
+  @@map("companies")
+}
+
+model User {
+  id                   Int       @id @default(autoincrement())
+  companyId            Int       @map("company_id")
+  roleId               Int       @map("role_id")
+
+  email                String    @unique
+  passwordHash         String    @map("password_hash")
+
+  isActive             Boolean   @default(true) @map("is_active")
+  emailVerified        Boolean   @default(false) @map("email_verified")
+
+  failedLoginAttempts  Int       @default(0) @map("failed_login_attempts")
+  lockUntil            DateTime? @map("lock_until")
+
+  lastLoginAt          DateTime? @map("last_login_at")
+  lastLoginIp          String?   @map("last_login_ip") @db.VarChar(50)
+
+  version              Int       @default(1)
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
+
+  company              Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role                 Role      @relation(fields: [roleId], references: [id])
+
+  loginHistory         LoginHistory[]
+  refreshTokens        RefreshToken[]
+
+  @@index([companyId])
+  @@index([roleId])
+  @@index([email])
+  @@map("users")
+}
+
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  companyId   Int       @map("company_id")
+
+  code        String    @db.VarChar(50)
+  name        String    @db.VarChar(100)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users        User[]
+  permissions  RolePermission[]
+
+  @@unique([companyId, code])
+
+  @@index([companyId])
+
+  @@map("roles")
+}
+
+model Module {
+  id          Int       @id @default(autoincrement())
+
+  code        String    @unique @db.VarChar(50)
+  name        String    @db.VarChar(100)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  permissions RolePermission[]
+
+  @@map("modules")
+}
+
+model RolePermission {
+  roleId      Int         @map("role_id")
+  moduleId    Int         @map("module_id")
+
+  accessLevel AccessLevel @map("access_level")
+
+  role        Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  module      Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, moduleId])
+
+  @@index([moduleId])
+
+  @@map("role_permissions")
+}
+
+
+model Customer {
+  id               Int       @id @default(autoincrement())
+  companyId        Int       @map("company_id")
+
+  name             String    @db.VarChar(255)
+  taxNumber        String?   @map("tax_number") @db.VarChar(50)
+
+  email            String?   @db.VarChar(255)
+  phone            String?   @db.VarChar(50)
+
+  address          String?
+
+  discountPercent  Decimal?  @map("discount_percent") @db.Decimal(5, 2)
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  documents        Document[]
+
+  @@index([companyId])
+  @@index([name])
+  @@index([taxNumber])
+
+  @@map("customers")
+}
+
+model VatRate {
+  id        Int       @id @default(autoincrement())
+
+  name      String?   @db.VarChar(50)
+  rate      Decimal   @db.Decimal(5, 2)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  products  Product[]
+
+  @@map("vat_rates")
+}
+
+
+model Product {
+  id                 Int       @id @default(autoincrement())
+  companyId          Int       @map("company_id")
+
+  vatRateId          Int?      @map("vat_rate_id")
+
+  name               String    @db.VarChar(255)
+  description        String?
+
+  type               ProductType
+
+  sku                String?   @db.VarChar(100)
+  unit               String?   @db.VarChar(50)
+
+  netPrice           Decimal?  @map("net_price") @db.Decimal(12, 2)
+  grossPrice         Decimal?  @map("gross_price") @db.Decimal(12, 2)
+
+  isActive           Boolean   @default(true) @map("is_active")
+
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vatRate            VatRate?  @relation(fields: [vatRateId], references: [id])
+
+  documentItems      DocumentItem[]
+  stockMovements     StockMovement[]
+  stockReservations  StockReservation[]
+
+  @@index([companyId])
+  @@index([vatRateId])
+  @@index([sku])
+  @@index([name])
+
+  @@map("products")
+}
+
+model Document {
+  id                    Int              @id @default(autoincrement())
+  companyId             Int              @map("company_id")
+
+  parentId              Int?             @map("parent_id")
+  referenceDocumentId   Int?             @map("reference_document_id")
+  customerId            Int?             @map("customer_id")
+
+  type                  DocumentType
+  status                DocumentStatus   @default(draft)
+
+  number                String?          @db.VarChar(100)
+  customerName          String?          @map("customer_name") @db.VarChar(255)
+
+  issuedAt              DateTime?        @map("issued_at")
+  fulfilledAt           DateTime?        @map("fulfilled_at")
+
+  netTotal              Decimal?         @map("net_total") @db.Decimal(12, 2)
+  vatTotal              Decimal?         @map("vat_total") @db.Decimal(12, 2)
+  grossTotal            Decimal?         @map("gross_total") @db.Decimal(12, 2)
+
+  meta                  Json?
+
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+  deletedAt             DateTime?        @map("deleted_at")
+
+  company               Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer              Customer?        @relation(fields: [customerId], references: [id])
+
+  parentDocument        Document?        @relation("DocumentParent", fields: [parentId], references: [id])
+  childDocuments        Document[]       @relation("DocumentParent")
+
+  referenceDocument     Document?        @relation("DocumentReference", fields: [referenceDocumentId], references: [id])
+  relatedDocuments      Document[]       @relation("DocumentReference")
+
+  items                 DocumentItem[]
+  payments              Payment[]
+  stockMovements        StockMovement[]
+  stockReservations     StockReservation[]
+
+  @@index([companyId])
+  @@index([customerId])
+  @@index([type])
+  @@index([status])
+  @@index([issuedAt])
+  @@index([number])
+
+  @@map("documents")
+}
+
+model DocumentItem {
+  id            Int        @id @default(autoincrement())
+
+  documentId    Int?       @map("document_id")
+  productId     Int?       @map("product_id")
+
+  name          String
+
+  quantity      Decimal    @db.Decimal(12, 2)
+  unit          String?    @db.VarChar(50)
+
+  netAmount     Decimal?   @map("net_amount") @db.Decimal(12, 2)
+  vatRate       Decimal?   @map("vat_rate") @db.Decimal(5, 2)
+  vatAmount     Decimal?   @map("vat_amount") @db.Decimal(12, 2)
+  grossAmount   Decimal?   @map("gross_amount") @db.Decimal(12, 2)
+
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  document       Document?  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  product        Product?   @relation(fields: [productId], references: [id])
+
+  @@index([documentId])
+  @@index([productId])
+
+  @@map("document_items")
+}
+
+model Payment {
+  id            Int            @id @default(autoincrement())
+
+  companyId     Int            @map("company_id")
+  documentId    Int?           @map("document_id")
+
+  amount        Decimal        @db.Decimal(12, 2)
+
+  paymentDate   DateTime       @map("payment_date") @db.Date
+
+  method        PaymentMethod?
+  reference     String?        @db.VarChar(255)
+
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  deletedAt     DateTime?      @map("deleted_at")
+
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  document      Document?      @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([documentId])
+  @@index([paymentDate])
+
+  @@map("payments")
+}
+
+model Warehouse {
+  id                 Int       @id @default(autoincrement())
+
+  companyId          Int       @map("company_id")
+
+  name               String    @db.VarChar(255)
+
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  company            Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  stockMovements     StockMovement[]
+  stockReservations  StockReservation[]
+
+  @@index([companyId])
+  @@index([name])
+
+  @@map("warehouses")
+}
+
+model StockMovement {
+  id              Int                @id @default(autoincrement())
+
+  companyId       Int                @map("company_id")
+  productId       Int?               @map("product_id")
+  warehouseId     Int?               @map("warehouse_id")
+  documentId      Int?               @map("document_id")
+
+  quantity        Decimal            @db.Decimal(12, 2)
+
+  movementType    StockMovementType  @map("movement_type")
+
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  company         Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  product         Product?           @relation(fields: [productId], references: [id])
+  warehouse       Warehouse?         @relation(fields: [warehouseId], references: [id])
+  document        Document?          @relation(fields: [documentId], references: [id])
+
+  @@index([companyId])
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([documentId])
+  @@index([createdAt])
+
+  @@map("stock_movements")
+}
+
+model StockReservation {
+  id              Int       @id @default(autoincrement())
+
+  companyId       Int       @map("company_id")
+  productId       Int?      @map("product_id")
+  warehouseId     Int?      @map("warehouse_id")
+  documentId      Int?      @map("document_id")
+
+  quantity        Decimal   @db.Decimal(12, 2)
+
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  product         Product?  @relation(fields: [productId], references: [id])
+  warehouse       Warehouse? @relation(fields: [warehouseId], references: [id])
+  document        Document? @relation(fields: [documentId], references: [id])
+
+  @@index([companyId])
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([documentId])
+
+  @@map("stock_reservations")
+}
+
+model RefreshToken {
+  id          Int       @id @default(autoincrement())
+
+  userId      Int       @map("user_id")
+
+  tokenHash   String    @unique @map("token_hash")
+
+  expiresAt   DateTime  @map("expires_at")
+  revokedAt   DateTime? @map("revoked_at")
+
+  ipAddress   String?   @map("ip_address") @db.VarChar(50)
+  userAgent   String?   @map("user_agent")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+
+  @@map("refresh_tokens")
+}
+
+model LoginHistory {
+  id          Int       @id @default(autoincrement())
+
+  userId      Int?      @map("user_id")
+  companyId   Int?      @map("company_id")
+
+  email       String?   @db.VarChar(255)
+  success     Boolean
+
+  ipAddress   String?   @map("ip_address") @db.VarChar(50)
+  userAgent   String?   @map("user_agent") @db.Text
+
+  country     String?   @db.VarChar(100)
+  city        String?   @db.VarChar(100)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company     Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([ipAddress])
+  @@index([createdAt])
+
+  @@map("login_history")
+}
+
+model AuditLog {
+  id          Int       @id @default(autoincrement())
+
+  userId      Int?      @map("user_id")
+  companyId   Int?      @map("company_id")
+
+  action      String    @db.VarChar(100)
+  entity      String?   @db.VarChar(100)
+  entityId    Int?      @map("entity_id")
+
+  metadata    Json?
+
+  ipAddress   String?   @map("ip_address") @db.VarChar(50)
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([entity])
+  @@index([createdAt])
+
+  @@map("audit_logs")
+}
+
+model DocumentSequence {
+  id              Int            @id @default(autoincrement())
+
+  companyId       Int            @map("company_id")
+
+  type            DocumentType
+  year            Int
+
+  currentNumber   Int            @default(0) @map("current_number")
+
+  prefix          String?        @db.VarChar(20)
+
+  company         Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, type, year])
+
+  @@index([companyId])
+
+  @@map("document_sequences")
+}
+
+enum AccessLevel {
+  none
+  read
+  write
+  admin
+}
+
+enum DocumentStatus {
+  draft
+  issued
+  completed
+  cancelled
+}
+
+enum DocumentType {
+  quote
+  order
+  delivery
+  invoice
+  performance_certificate
+  proforma
+}
+
+enum PaymentMethod {
+  cash
+  bank_transfer
+  card
+  other
+}
+
+enum ProductType {
+  product
+  service
+  advance
+}
+
+enum StockMovementType {
+  in
+  out
+  adjustment
+}
+
