@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { AuditService } from '../../audit/audit.service';
+import { AuditAction } from '../../audit/audit.constans';
+import { ErrorCode } from 'src/common/errors/error-codes';
+
 
 @Injectable()
 export class UsersService {
@@ -77,5 +80,111 @@ async invalidateUser(userId: number) {
     },
   });
 }
+
+async deactivateUser(
+  userId: number,
+  adminId: number,
+) {
+
+  const user = await this.prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  if (userId === adminId) {
+    throw new BadRequestException({code: ErrorCode.CANNOT_DEACTIVATE_SELF});
+  }
+
+  await this.prisma.$transaction(async (tx) => {
+
+    // USER DISABLE
+    await tx.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+
+        isActive: false,
+
+        // ACCESS TOKEN INVALIDATION
+        version: {
+          increment: 1,
+        },
+      },
+    });
+
+    // REFRESH TOKEN REVOKE
+    await tx.refreshToken.updateMany({
+      where: {
+        userId: user.id,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  });
+
+  await this.audit.log({
+    user_id: adminId,
+    company_id: user.companyId,
+    action: AuditAction.USER_DEACTIVATED,
+    entity: 'user',
+    entity_id: user.id,
+    metadata: {
+      deactivated_user_email: user.email,
+    },
+  });
+
+  return {
+    success: true,
+  };
+}
+
+async reactivateUser(
+  userId: number,
+  adminId: number,
+) {
+
+  const user = await this.prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  await this.prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      isActive: true,
+    },
+  });
+
+  await this.audit.log({
+    user_id: adminId,
+    company_id: user.companyId,
+    action: AuditAction.USER_REACTIVATED,
+    entity: 'user',
+    entity_id: user.id,
+    metadata: {
+      reactivated_user_email: user.email,
+    },
+  });
+
+  return {
+    success: true,
+  };
+}
+
 
 }

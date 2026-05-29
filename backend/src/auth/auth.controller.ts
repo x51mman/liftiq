@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, Param, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterCompanyDto } from './dto/register-company.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -29,9 +29,12 @@ export class AuthController {
   @Post('login')
   login(@Req() req: ExpressRequest, @Body() body: { email: string; password: string }) 
   
-  {const ip = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
+  {
+  const ip = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
   
-  return this.authService.login(body.email, body.password, ip);
+  const userAgent = req.headers['user-agent'] || 'unknown';
+
+  return this.authService.login(body.email, body.password, ip, userAgent);
   }
 
   
@@ -94,5 +97,25 @@ export class AuthController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('sessions')
+  getSessions(@Req() req: any) {
+
+    return this.authService.getSessions(
+      req.user.sub,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout-session/:id')
+  logoutSession(
+    @Req() req: any,
+    @Param('id') id: string) {
+
+    return this.authService.logoutSession(
+      req.user.sub,
+      Number(id),
+    );
+  }
 
 }

@@ -9,6 +9,7 @@ import { SecurityService } from '../security/security.service';
 import { withTenant } from '../lib/tenant';
 import { createHash } from 'crypto';
 import { authenticate } from 'passport';
+import { UAParser } from 'ua-parser-js';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +20,7 @@ export class AuthService {
     private security: SecurityService,
   ) {}
 
-  async login(email: string, password: string, ip: string) {
+  async login(email: string, password: string, ip: string, userAgent: string) {
 
     const bruteForce = await this.security.detectBruteForce(email);
 
@@ -56,7 +57,13 @@ export class AuthService {
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException({code: ErrorCode.INVALID_CREDENTIALS})
+      await this.audit.log({
+          user_id: user.id,
+          company_id: user.companyId,
+          action: AuditAction.LOGIN_BLOCKED_INACTIVE,
+        });
+
+      throw new UnauthorizedException({code: ErrorCode.ACCOUNT_DISABLED,});
     }
 
     if (user.deletedAt) {
@@ -154,7 +161,7 @@ export class AuthService {
       email: user.email,
       company_id: user.companyId,
       role_id: user.roleId,
-      //role_code: user.roleId.code,
+      role_code: user.role.code,
       version: user.version,
       permissions: permissions.map((p) => ({
         module: p.module.code,
@@ -198,6 +205,10 @@ export class AuthService {
       .update(refreshToken)
       .digest('hex')
 
+    const parser = new UAParser(userAgent);
+
+    const result = parser.getResult();
+
     await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
@@ -206,6 +217,10 @@ export class AuthService {
           Date.now() + 7 * 24 * 60 * 60 * 1000
         ),
         ipAddress: ip,
+        deviceName: result.device.model || `${result.browser.name} ${result.os.name}`,
+        browser: result.browser.name,
+        os: result.os.name,
+        lastUsedAt: new Date(),
       },
     });
 
@@ -343,6 +358,8 @@ async refresh(refreshToken: string, ip: string, userAgent: string) {
         },
         data: {
           revokedAt: new Date(),
+          revokedReason: AuditAction.SECURITY_INCIDENT,
+          //"token replay attack" or "stolen refresh token reuse"
         },
       });
 
@@ -393,6 +410,8 @@ async refresh(refreshToken: string, ip: string, userAgent: string) {
         },
         data: {
           revokedAt: new Date(),
+          lastUsedAt: new Date(),
+          revokedReason: AuditAction.TOKEN_REFRESH,
         },
       });
 
@@ -447,6 +466,10 @@ async refresh(refreshToken: string, ip: string, userAgent: string) {
           expiresAt: new Date(
             Date.now() + 7 * 24 * 60 * 60 * 1000
           ),
+          lastUsedAt: new Date(),
+          browser: storedToken.browser,
+          os: storedToken.os,
+          deviceName: storedToken.deviceName,
         },
       });
     
@@ -511,6 +534,7 @@ async logout(refreshToken: string) {
     },
     data: {
       revokedAt: new Date(),
+      revokedReason: AuditAction.LOGOUT,
     },
   });
 
@@ -534,6 +558,7 @@ async logoutAll(userId: number) {
     },
     data: {
       revokedAt: new Date(),
+      revokedReason: AuditAction.LOGOUT_ALL_DEVICES,
     },
   });
 
@@ -628,6 +653,7 @@ async changePassword( userId: number, currentPassword: string, newPassword: stri
       },
       data: {
         revokedAt: new Date(),
+        revokedReason: AuditAction.PASSWORD_CHANGED,
       },
     });
   });
@@ -642,5 +668,50 @@ async changePassword( userId: number, currentPassword: string, newPassword: stri
     success: true,
   };
 }
+
+async getSessions(userId: number) {
+
+  return this.prisma.refreshToken.findMany({
+    where: {
+      userId,
+      revokedAt: null,
+      expiresAt: {
+        gt: new Date(),
+      },
+    },
+
+    orderBy: {
+      lastUsedAt: 'desc',
+    },
+
+    select: {
+      id: true,
+      ipAddress: true,
+      userAgent: true,
+      browser: true,
+      os: true,
+      deviceName: true,
+      createdAt: true,
+      lastUsedAt: true,
+    },
+  });
+}
+
+async logoutSession(
+  userId: number,
+  sessionId: number,
+) {
+
+  return this.prisma.refreshToken.updateMany({
+    where: {
+      id: sessionId,
+      userId,
+    },
+    data: {
+      revokedAt: new Date(),
+    },
+  });
+}
+
 
 }

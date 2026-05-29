@@ -29,6 +29,7 @@ model Company {
   users             User[]
   warehouses        Warehouse[]
   loginHistory      LoginHistory[]
+  auditLog          AuditLog[]
 
   @@map("companies")
 }
@@ -61,6 +62,7 @@ model User {
 
   loginHistory         LoginHistory[]
   refreshTokens        RefreshToken[]
+  auditLog             AuditLog[]
 
   @@index([companyId])
   @@index([roleId])
@@ -384,21 +386,28 @@ model StockReservation {
 }
 
 model RefreshToken {
-  id          Int       @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
 
-  userId      Int       @map("user_id")
+  userId        Int       @map("user_id")
 
-  tokenHash   String    @unique @map("token_hash")
+  tokenHash     String    @unique @map("token_hash")
 
-  expiresAt   DateTime  @map("expires_at")
-  revokedAt   DateTime? @map("revoked_at")
+  expiresAt     DateTime  @map("expires_at")
+  revokedAt     DateTime? @map("revoked_at")
+  revokedReason String?   @db.VarChar(255)
 
-  ipAddress   String?   @map("ip_address") @db.VarChar(50)
-  userAgent   String?   @map("user_agent")
+  ipAddress     String?   @map("ip_address") @db.VarChar(50)
+  userAgent     String?   @map("user_agent")
 
-  createdAt   DateTime  @default(now()) @map("created_at")
+  deviceName    String?   @db.VarChar(255)
+  browser       String?   @db.VarChar(50)
+  os            String?   @db.VarChar(50)
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastUsedAt    DateTime?
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
@@ -449,6 +458,9 @@ model AuditLog {
   ipAddress   String?   @map("ip_address") @db.VarChar(50)
 
   createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User?     @relation(fields: [userId], references: [id])
+  company     Company?  @relation(fields: [companyId], references: [id])
 
   @@index([userId])
   @@index([companyId])
