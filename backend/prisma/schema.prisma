@@ -52,6 +52,8 @@ model User {
   lastLoginIp          String?   @map("last_login_ip") @db.VarChar(50)
 
   version              Int       @default(1)
+  mfaEnabled           Boolean   @default(false)
+  mfaSecret            String?
 
   createdAt            DateTime  @default(now()) @map("created_at")
   updatedAt            DateTime  @updatedAt @map("updated_at")

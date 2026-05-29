@@ -118,4 +118,43 @@ export class AuthController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('mfa/setup')
+  setupMfa(@Req() req: any) {
+    return this.authService.setupMfa(
+      req.user.sub,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('mfa/verify')
+  verifyMfa(@Req() req: any, @Body() body: {code: string;},) {
+    return this.authService.verifyMfa(
+      req.user.sub,
+      body.code,
+    );
+  }
+
+  @Post('mfa/login')
+  verifyLoginMfa( 
+    @Req() req: ExpressRequest,
+    @Body() body: {
+      temp_token: string;
+      code: string;
+    },
+  ) {
+
+  const ip = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
+
+  const userAgent = req.headers['user-agent'] || 'unknown';
+
+    return this.authService.verifyLoginMfa(
+      body.temp_token,
+      body.code,
+      ip,
+      userAgent,
+    );
+}
+
+ 
 }

@@ -10,6 +10,8 @@ import { withTenant } from '../lib/tenant';
 import { createHash } from 'crypto';
 import { authenticate } from 'passport';
 import { UAParser } from 'ua-parser-js';
+import * as speakeasy from 'speakeasy';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -147,35 +149,20 @@ export class AuthService {
       },
     });
 
-    const permissions = await this.prisma.rolePermission.findMany({
-      where: {
-        roleId: user.roleId,
-      },
-      include: {
-        module: true,
-      },
-    });
-
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      company_id: user.companyId,
-      role_id: user.roleId,
-      role_code: user.role.code,
-      version: user.version,
-      permissions: permissions.map((p) => ({
-        module: p.module.code,
-        level: p.accessLevel,
-      })),
-    };
-
-    await this.security.logLogin({
-      user_id: user.id,
-      company_id: user.companyId,
-      email: user.email,
-      success: true,
-      ip_address: ip,
-    });
+   if (user.mfaEnabled) {
+      return {
+        mfa_required: true,
+        temp_token: this.jwtService.sign(
+          {
+            sub: user.id,
+            type: 'mfa_temp',
+          },
+          {
+            expiresIn: '5m',
+          },
+        ),
+      };
+    }
 
     await this.audit.log({
       user_id: user.id,
@@ -187,47 +174,11 @@ export class AuthService {
       },
     });
 
-    const accessToken = this.jwtService.sign(payload);
-
-    const refreshToken = this.jwtService.sign(
-      { 
-        sub: user.id,
-        type: 'refresh',
-        version: user.version,
-      },
-      {
-        secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: '7d' 
-      },
+    return this.createSession(
+      user,
+      ip,
+      userAgent,
     );
-
-    const hashedRefreshToken  = createHash('sha256')
-      .update(refreshToken)
-      .digest('hex')
-
-    const parser = new UAParser(userAgent);
-
-    const result = parser.getResult();
-
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashedRefreshToken,
-        expiresAt: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ),
-        ipAddress: ip,
-        deviceName: result.device.model || `${result.browser.name} ${result.os.name}`,
-        browser: result.browser.name,
-        os: result.os.name,
-        lastUsedAt: new Date(),
-      },
-    });
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
   }
 
   async registerCompany(data: {
@@ -459,10 +410,9 @@ async refresh(refreshToken: string, ip: string, userAgent: string) {
         data: {
           userId: user.id,
           tokenHash: newTokenHash,
-          createdAt: new Date(),
           ipAddress: ip,
           userAgent: userAgent,
-
+          createdAt: new Date(),
           expiresAt: new Date(
             Date.now() + 7 * 24 * 60 * 60 * 1000
           ),
@@ -709,9 +659,251 @@ async logoutSession(
     },
     data: {
       revokedAt: new Date(),
+      revokedReason: AuditAction.SESSION_TERMINATED
     },
   });
 }
+
+async setupMfa(userId: number) {
+
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new UnauthorizedException();
+  }
+
+  const secret = speakeasy.generateSecret({
+    name: `ERP (${user.email})`,
+  });
+
+  await this.prisma.user.update({
+    where: { id: user.id },
+    data: {
+      mfaSecret: secret.base32,
+    },
+  });
+
+  const qrCode = await QRCode.toDataURL(
+    secret.otpauth_url!,
+  );
+
+  return {
+    secret: secret.base32,
+    qrCode,
+  };
+}
+
+async verifyMfa( userId: number,  code: string, ) {
+
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user || !user.mfaSecret) {
+    throw new UnauthorizedException();
+  }
+
+  const verified = speakeasy.totp.verify({
+    secret: user.mfaSecret,
+    encoding: 'base32',
+    token: code,
+    window: 1,
+  });
+
+  if (!verified) {
+    throw new UnauthorizedException({
+      code: ErrorCode.INVALID_MFA_CODE,
+    });
+  }
+
+  await this.prisma.user.update({
+
+    where: { id: user.id },
+
+    data: {
+      mfaEnabled: true,
+    },
+  });
+
+  return {
+    success: true,
+  };
+}
+
+async verifyLoginMfa(
+  tempToken: string,
+  code: string,
+  ip: string,
+  userAgent: string,
+) {
+
+  try {
+
+    const payload = this.jwtService.verify(tempToken);
+
+    if (payload.type !== 'mfa_temp') {
+
+      throw new UnauthorizedException({
+        code: 'INVALID_MFA_TEMP_TOKEN',
+      });
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: payload.sub,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+
+    if (!user.mfaEnabled || !user.mfaSecret) {
+
+      throw new UnauthorizedException({
+        code: 'MFA_NOT_ENABLED',
+      });
+    }
+
+    // VERIFY TOTP
+
+    const verified = speakeasy.totp.verify({
+
+      secret: user.mfaSecret,
+
+      encoding: 'base32',
+
+      token: code,
+
+      window: 1,
+    });
+
+    if (!verified) {
+
+      await this.audit.log({
+        user_id: user.id,
+        company_id: user.companyId,
+        action: AuditAction.MFA_FAILED,
+        ip_address: ip,
+      });
+
+      throw new UnauthorizedException({
+        code: ErrorCode.INVALID_MFA_CODE,
+      });
+    }
+
+    await this.audit.log({
+      user_id: user.id,
+      company_id: user.companyId,
+      action: AuditAction.MFA_SUCCESS,
+      ip_address: ip,
+    });
+
+    return this.createSession(
+      user,
+      ip,
+      userAgent,
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    throw new UnauthorizedException({
+      code: ErrorCode.INVALID_MFA_LOGIN,
+    });
+  }
+}
+
+private async createSession(
+  user: any,
+  ip: string,
+  userAgent: string,
+) {
+
+const permissions = await this.prisma.rolePermission.findMany({
+      where: {
+        roleId: user.roleId,
+      },
+      include: {
+        module: true,
+      },
+    });
+
+    const accessPayload = {
+      sub: user.id,
+      email: user.email,
+      company_id: user.companyId,
+      role_id: user.roleId,
+      role_code: user.role.code,
+      version: user.version,
+      permissions: permissions.map((p) => ({
+        module: p.module.code,
+        level: p.accessLevel,
+      })),
+    };
+
+    const accessToken = this.jwtService.sign(accessPayload);
+
+    const refreshToken = this.jwtService.sign(
+      { 
+        sub: user.id,
+        type: 'refresh',
+        version: user.version,
+      },
+      {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: '7d' 
+      },
+    );
+
+    const hashedRefreshToken  = createHash('sha256')
+      .update(refreshToken)
+      .digest('hex')
+
+    const parser = new UAParser(userAgent);
+
+    const result = parser.getResult();
+
+    await this.prisma.$transaction(async (tx) => {
+
+      await tx.refreshToken.create({
+        data: {
+          userId: user.id,
+          tokenHash: hashedRefreshToken,
+          ipAddress: ip,
+          userAgent: userAgent,
+          deviceName: result.device.model || `${result.browser.name} ${result.os.name}`,
+          browser: result.browser.name,
+          os: result.os.name,
+          createdAt: new Date(),
+          lastUsedAt: new Date(),
+          expiresAt: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ),
+        },
+      });
+    });
+
+    await this.security.logLogin({
+      user_id: user.id,
+      company_id: user.companyId,
+      email: user.email,
+      success: true,
+      ip_address: ip,
+      user_agent: userAgent,
+    });
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
+  }
 
 
 }
