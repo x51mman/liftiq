@@ -126,6 +126,7 @@ async deactivateUser(
       },
       data: {
         revokedAt: new Date(),
+        revokedReason: AuditAction.USER_DEACTIVATED,
       },
     });
   });

@@ -870,24 +870,21 @@ const permissions = await this.prisma.rolePermission.findMany({
 
     const result = parser.getResult();
 
-    await this.prisma.$transaction(async (tx) => {
-
-      await tx.refreshToken.create({
-        data: {
-          userId: user.id,
-          tokenHash: hashedRefreshToken,
-          ipAddress: ip,
-          userAgent: userAgent,
-          deviceName: result.device.model || `${result.browser.name} ${result.os.name}`,
-          browser: result.browser.name,
-          os: result.os.name,
-          createdAt: new Date(),
-          lastUsedAt: new Date(),
-          expiresAt: new Date(
-            Date.now() + 7 * 24 * 60 * 60 * 1000
-          ),
-        },
-      });
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashedRefreshToken,
+        ipAddress: ip,
+        userAgent: userAgent,
+        deviceName: result.device.model || `${result.browser.name} ${result.os.name}`,
+        browser: result.browser.name,
+        os: result.os.name,
+        createdAt: new Date(),
+        lastUsedAt: new Date(),
+        expiresAt: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ),
+      },
     });
 
     await this.security.logLogin({
