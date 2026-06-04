@@ -141,3 +141,25 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local database backups
+*.sql
+*.dump
+
+# Docker
+docker-data/
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
