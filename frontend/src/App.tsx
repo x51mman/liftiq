@@ -5,6 +5,17 @@ import heroImg from './assets/hero.png';
 import './App.css';
 
 function App() {
+  return (
+    <div className="p-8 bg-red-500 text-white">
+      Szeretlek Kismanó!
+    </div>
+  );
+}
+
+export default App;
+
+/*
+function App() {
   const [count, setCount] = useState(0);
 
   return (
@@ -119,4 +130,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; */
