@@ -1,12 +1,9 @@
-import App from './App.tsx';
+import { App } from './app/App';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { AppProviders } from './app/providers';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppProviders>
-      <App />
-    </AppProviders>
+    <App />
   </React.StrictMode>,
 );
