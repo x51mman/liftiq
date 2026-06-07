@@ -1,5 +1,21 @@
-import { AppRouter } from "../router";
+import type { ReactNode } from "react";
 
-export function AppProviders() {
-    return <AppRouter />;
+import { ThemeProvider } from "@/shared/theme";
+
+import { QueryProvider } from "./query-provider";
+
+type Props = {
+    children: ReactNode;
+};
+
+export function AppProviders({
+    children,
+}: Props) {
+    return (
+        <ThemeProvider>
+            <QueryProvider>
+                {children}
+            </QueryProvider>
+        </ThemeProvider>
+    );
 }
