@@ -1,15 +1,15 @@
-export function LoginFooter() {
+export function LoginStatus() {
     return (
         <div
             className="
-                fixed
-                bottom-5
-                right-5
+                border-t
+                border-slate-800
+                pt-4
                 text-xs
                 text-slate-500
             "
         >
-            LiftIQ • Development Build
+            ● System ready
         </div>
     );
 }

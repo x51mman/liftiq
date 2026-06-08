@@ -1,10 +1,10 @@
-export function LoginBackground() {
+export function LoginOverlay() {
     return (
         <div
             className="
                 fixed
                 inset-0
-                bg-[#05070A]
+                bg-black/35
             "
         />
     );

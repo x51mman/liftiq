@@ -1,16 +1,19 @@
 import { LoginBackground } from "./LoginBackground";
 import { LoginHud } from "./LoginHud";
-import { LoginPanel } from "./LoginPanel";
+import { LoginContainer } from "./LoginContainer";
 import { LoginFooter } from "./LoginFooter";
+import { LoginOverlay } from "./LoginOverlay";
 
 export function LoginScreen() {
     return (
         <>
             <LoginBackground />
 
+            <LoginOverlay />
+
             <LoginHud />
 
-            <LoginPanel />
+            <LoginContainer />
 
             <LoginFooter />
         </>
