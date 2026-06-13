@@ -1,21 +1,34 @@
+import { Screen, Center } from "@/shared/layout";
 import { LoginBackground } from "./LoginBackground";
 import { LoginHud } from "./LoginHud";
-import { LoginContainer } from "./LoginContainer";
-import { LoginFooter } from "./LoginFooter";
+//import { LoginContainer } from "./LoginContainer";
+//import { LoginFooter } from "./LoginFooter";
 import { LoginOverlay } from "./LoginOverlay";
+import { LoginPanel } from "./LoginPanel";
+import { PanelAppear } from "@/shared/graphics";
 
 export function LoginScreen() {
     return (
         <>
-            <LoginBackground />
+            <Screen>
 
-            <LoginOverlay />
+                <LoginBackground />
 
-            <LoginHud />
+                <LoginOverlay />
 
-            <LoginContainer />
+                <LoginHud />
 
-            <LoginFooter />
+                <Center>
+
+                    <PanelAppear>
+
+                        <LoginPanel />
+
+                    </PanelAppear>
+
+                </Center>
+
+            </Screen>
         </>
     );
 }

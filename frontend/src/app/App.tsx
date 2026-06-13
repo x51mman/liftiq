@@ -1,11 +1,8 @@
 import { useEffect } from "react";
 
-import {
-  bootstrapAuth,
-  useAuth,
-} from "@/features/auth";
+import { bootstrapAuth, useAuth } from "@/features/auth";
 
-import { AppRouter } from "./router";
+import { AppRouter } from "./api/router";
 
 export function App() {
 
