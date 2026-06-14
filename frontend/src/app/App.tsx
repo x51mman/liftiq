@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { bootstrapAuth, useAuth } from "@/features/auth";
 
-import { AppRouter } from "./api/router";
+import { AppRouter } from "./router";
 
 export function App() {
 

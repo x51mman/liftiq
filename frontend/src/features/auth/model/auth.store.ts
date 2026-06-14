@@ -1,44 +1,48 @@
 import { create } from "zustand";
-import type {
-    AuthStatus,
-    UserSession,
-} from "./auth.types";
+import type { AuthStatus, UserSession } from "./auth.types";
 
 interface AuthStore {
 
     status: AuthStatus;
-
     session: UserSession | null;
 
-    setStatus(
-        status: AuthStatus,
-    ): void;
+    setStatus(status: AuthStatus): void;
 
-    setSession(
-        session: UserSession | null,
-    ): void;
+    setSession(session: UserSession | null): void;
+
+    login(session: UserSession): void;
+    logout(): void;
+    reset(): void;
+
 }
 
-export const useAuthStore =
-    create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
 
-        status: "unknown",
+    status: "unknown",
+    session: null,
 
-        session: null,
+    setStatus: (status) =>
+        set({ status }),
 
-        setStatus: (status) =>
-            set({ status }),
+    setSession: (session) =>
+        set({ session }),
 
-        setSession: (session) =>
-            set({ session }),
+    login: (session) =>
+        set({
+            status: "authenticated",
+            session
+        }),
 
-        reset: () =>
-            set({
+    logout: () =>
+        set({
+            status: "unauthenticated",
+            session: null
+        }),
 
-                status: "unauthenticated",
+    reset: () =>
+        set({
+            status: "unauthenticated",
+            session: null,
+        }),
 
-                session: null,
-
-            }),
-
-    }));
+}));

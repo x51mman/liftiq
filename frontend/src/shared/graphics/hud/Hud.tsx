@@ -5,7 +5,7 @@ import { HudCoordinates } from "./layers/HudCoordinates";
 import { HudTactical } from "./layers/HudTactical";
 import { HudAmbient } from "./layers/HudAmbient";
 
-export function LoginHud() {
+export function Hud() {
     return (
         <div
             className="

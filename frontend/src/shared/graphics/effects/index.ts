@@ -1,4 +1,1 @@
-export * from "./FadeIn";
-export * from "./SlideUp";
-export * from "./ScaleIn";
-export * from "./PanelAppear";
+export * from "./panels"
