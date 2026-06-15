@@ -1,1 +1,1 @@
-export * from "./LoginBackground";
+export * from "./BackgroundScene";

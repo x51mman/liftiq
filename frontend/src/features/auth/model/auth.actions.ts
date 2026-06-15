@@ -17,6 +17,7 @@ export async function bootstrapAuth() {
     );
 
     store.setStatus(
-        "unauthenticated",
+        "authenticated",
     );
+
 }

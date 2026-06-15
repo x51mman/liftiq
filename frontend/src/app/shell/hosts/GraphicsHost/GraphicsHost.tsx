@@ -1,13 +1,11 @@
-import {
-    BackgroundRenderer,
-    Hud,
-} from "@/shared/graphics";
+import { BackgroundLayer, HudLayer, } from "./layers";
 
 export function GraphicsHost() {
     return (
         <>
-            <BackgroundRenderer />
-            <Hud />
+            <BackgroundLayer />
+
+            <HudLayer />
         </>
     );
 }

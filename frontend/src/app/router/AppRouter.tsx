@@ -1,18 +1,26 @@
 import { ApplicationShell } from "@/app/shell";
 import { LoginScreen } from "@/features/auth/ui";
-import { PublicRoute } from "./guards";
+import { DashboardScreen } from "@/features/dashboard";
+import { useAuth } from "@/features/auth";
+//import { PublicRoute } from "./guards";
 
 export function AppRouter() {
+
+    const { status } = useAuth();
 
     return (
 
         <ApplicationShell>
 
-            <PublicRoute>
+            {status === "authenticated" ? (
+
+                <DashboardScreen />
+
+            ) : (
 
                 <LoginScreen />
 
-            </PublicRoute>
+            )}
 
         </ApplicationShell>
 
