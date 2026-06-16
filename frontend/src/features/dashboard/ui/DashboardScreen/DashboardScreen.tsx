@@ -1,21 +1,11 @@
-import { Screen } from "@/shared/layout";
+import { WorkspaceLayout } from "@/app/shell/layouts";
 
 export function DashboardScreen() {
     return (
-        <Screen>
+        <WorkspaceLayout>
 
-            <div
-                className="
-                    flex
-                    min-h-screen
-                    items-center
-                    justify-center
-                    text-cyan-400
-                "
-            >
-                Dashboard v1
-            </div>
+            Dashboard v1
 
-        </Screen>
+        </WorkspaceLayout>
     );
 }
