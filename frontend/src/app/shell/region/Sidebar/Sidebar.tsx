@@ -1,4 +1,5 @@
 import { useNavigation } from "@/app/navigation";
+import { NavLink } from "react-router-dom";
 
 export function Sidebar() {
 
@@ -18,21 +19,26 @@ export function Sidebar() {
 
                 {items.map((item) => (
 
-                    <button
+                    <NavLink
                         key={item.id}
-                        className="
+                        to={item.path}
+                        className={({ isActive }) =>
+                            `
                             block
-                            w-full
                             rounded-md
                             px-3
                             py-2
-                            text-left
                             text-sm
-                            hover:bg-cyan-500/10
-                        "
+                            ${isActive
+                                ? "bg-cyan-500/20"
+                                //    : "hover:bg-cyan-500/10"
+                                : "hover:text-white hover: bg-cyan-500/10"
+                            }
+        `
+                        }
                     >
                         {item.label}
-                    </button>
+                    </NavLink>
 
                 ))}
 
