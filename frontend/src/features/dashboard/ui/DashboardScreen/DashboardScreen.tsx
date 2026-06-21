@@ -1,11 +1,7 @@
-import { WorkspaceLayout } from "@/app/shell/layouts";
-
 export function DashboardScreen() {
     return (
-        <WorkspaceLayout>
-
+        <div className="p-6">
             Dashboard v1
-
-        </WorkspaceLayout>
+        </div>
     );
 }

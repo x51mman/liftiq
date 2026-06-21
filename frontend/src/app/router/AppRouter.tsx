@@ -1,6 +1,6 @@
-import { ApplicationShell } from "@/app/shell";
+import { ShellRoot } from "@/app/shell";
 import { LoginScreen } from "@/features/auth/ui";
-import { DashboardScreen } from "@/features/dashboard";
+//import { DashboardScreen } from "@/features/dashboard";
 //import { routes } from "../config";
 //import { UsersScreen } from "@/features/users";
 //import { AuditScreen } from "@/features/audit";
@@ -10,17 +10,19 @@ import { DashboardScreen } from "@/features/dashboard";
 //import { Routes, Route, Navigate, } from "react-router-dom";
 
 import { useAuth } from "@/features/auth";
+import { MainLayout } from "../shell/layouts";
 
 export function AppRouter() {
-
     const { status } = useAuth();
 
     return (
-        <ApplicationShell>
-            {status === "authenticated"
-                ? <DashboardScreen />
-                : <LoginScreen />}
-        </ApplicationShell>
+        <ShellRoot>
+            {status === "authenticated" ? (
+                <MainLayout />
+            ) : (
+                <LoginScreen />
+            )}
+        </ShellRoot>
     );
 }
 /*
