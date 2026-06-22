@@ -14,6 +14,18 @@ interface WorkspaceStore
     setActivePanel(
         id: PanelId | null,
     ): void;
+
+    openPanel(
+        id: PanelId,
+    ): void;
+
+    closePanel(
+        id: PanelId,
+    ): void;
+
+    togglePanel(
+        id: PanelId,
+    ): void;
 }
 
 export const useWorkspaceStore =
@@ -30,6 +42,7 @@ export const useWorkspaceStore =
                 workspaceId: "dashboard",
                 title: "Dashboard Main",
                 visible: true,
+                state: "open",
             },
         ],
 
@@ -42,4 +55,45 @@ export const useWorkspaceStore =
             set({
                 activePanelId: id,
             }),
+
+        openPanel: (id) =>
+            set((state) => ({
+                panels: state.panels.map((panel) =>
+                    panel.id === id
+                        ? {
+                            ...panel,
+                            visible: true,
+                            state: "open",
+                        }
+                        : panel,
+                ),
+            })),
+
+        closePanel: (id) =>
+            set((state) => ({
+                panels: state.panels.map((panel) =>
+                    panel.id === id
+                        ? {
+                            ...panel,
+                            visible: false,
+                            state: "closed",
+                        }
+                        : panel,
+                ),
+            })),
+
+        togglePanel: (id) =>
+            set((state) => ({
+                panels: state.panels.map((panel) =>
+                    panel.id === id
+                        ? {
+                            ...panel,
+                            visible: !panel.visible,
+                            state: panel.visible
+                                ? "hidden"
+                                : "open",
+                        }
+                        : panel,
+                ),
+            })),
     }));

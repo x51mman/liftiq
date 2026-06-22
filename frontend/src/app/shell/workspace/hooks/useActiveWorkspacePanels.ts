@@ -1,12 +1,20 @@
 import { useWorkspaceStore } from "../store";
 
 export function useActiveWorkspacePanels() {
-    return useWorkspaceStore((state) =>
-        state.panels.filter(
-            (panel) =>
-                panel.workspaceId ===
-                state.activeWorkspaceId &&
-                panel.visible,
-        ),
+
+    const activeWorkspaceId =
+        useWorkspaceStore(
+            (state) => state.activeWorkspaceId,
+        );
+
+    const panels =
+        useWorkspaceStore(
+            (state) => state.panels,
+        );
+
+    return panels.filter(
+        (panel) =>
+            panel.workspaceId === activeWorkspaceId &&
+            panel.visible,
     );
 }

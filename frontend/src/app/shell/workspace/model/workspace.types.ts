@@ -16,16 +16,22 @@ export interface WorkspaceDefinition {
     description?: string;
 }
 
-export interface WorkspacePanel {
-    id: PanelId;
-    workspaceId: WorkspaceId;
-    title: string;
-    visible: boolean;
-}
-
 export interface WorkspaceState {
     activeWorkspaceId: WorkspaceId;
     activePanelId: PanelId | null;
     workspaces: WorkspaceDefinition[];
     panels: WorkspacePanel[];
+}
+
+export type PanelState =
+    | "open"
+    | "hidden"
+    | "closed";
+
+export interface WorkspacePanel {
+    id: PanelId;
+    workspaceId: WorkspaceId;
+    title: string;
+    visible: boolean;
+    state: PanelState;
 }
