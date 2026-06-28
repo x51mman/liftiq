@@ -27,20 +27,40 @@ export function SplitRenderer({
             `}
         >
             {node.children.map(
-                (child) => (
-                    <div
-                        key={child.id}
-                        className="
-                            min-h-0
-                            min-w-0
-                            flex-1
-                        "
-                    >
-                        <LayoutRenderer
-                            node={child}
-                        />
-                    </div>
-                ),
+                (child, index) => {
+                    const size =
+                        node.sizes[index] ?? 0;
+
+                    return (
+                        <div
+                            key={child.id}
+                            className="
+                                min-h-0
+                                min-w-0
+                                shrink-0
+                            "
+                            style={
+                                isHorizontal
+                                    ? {
+                                        width:
+                                            `${size}%`,
+                                        height:
+                                            "100%",
+                                    }
+                                    : {
+                                        height:
+                                            `${size}%`,
+                                        width:
+                                            "100%",
+                                    }
+                            }
+                        >
+                            <LayoutRenderer
+                                node={child}
+                            />
+                        </div>
+                    );
+                },
             )}
         </div>
     );

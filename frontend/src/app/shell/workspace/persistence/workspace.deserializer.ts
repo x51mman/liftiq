@@ -1,23 +1,25 @@
 import type { PersistedWorkspaceState } from "../model";
+import type { WorkspaceRestorePayload } from "../model/workspace.types";
 import { defaultLayout } from "../model/default-layout";
-import type { WorkspaceRestorePayload } from "../model";
 
 export function deserializeWorkspace(
     persisted: PersistedWorkspaceState
 ): WorkspaceRestorePayload {
-    // Ha van panels, akkor layoutRoot is kell
-    if (persisted.panels) {
+    if ('panels' in persisted) {
+        // TS itt tudja: persisted is PersistedWorkspaceV2
         return {
             activeWorkspaceId: persisted.activeWorkspaceId,
             activePanelId: persisted.activePanelId,
             panels: persisted.panels,
-            layoutRoot: persisted.layoutRoot ?? defaultLayout, // fallback
+            layoutRoot: persisted.layoutRoot ?? defaultLayout, // biztosan van
         };
     }
 
-    // Ha nincs panels, akkor layout se kell
+    // TS itt tudja: persisted is PersistedWorkspaceLegacy
     return {
         activeWorkspaceId: persisted.activeWorkspaceId,
         activePanelId: persisted.activePanelId,
+        panels: [], // default
+        layoutRoot: defaultLayout, // default
     };
 }

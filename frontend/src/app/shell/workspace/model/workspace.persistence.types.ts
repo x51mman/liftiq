@@ -5,10 +5,17 @@ import type {
     WorkspacePanel,
 } from "./workspace.types";
 
-export type PersistedWorkspaceState = {
+type PersistedWorkspaceLegacy = {
     activeWorkspaceId: WorkspaceId;
     activePanelId: PanelId | null;
-} & (
-        | { panels: WorkspacePanel[]; layoutRoot: LayoutNode | null }
-        | { panels?: never; layoutRoot?: never }
-    );
+};
+
+type PersistedWorkspaceV2 =
+    PersistedWorkspaceLegacy & {
+        panels: WorkspacePanel[];
+        layoutRoot: LayoutNode;
+    };
+
+export type PersistedWorkspaceState =
+    | PersistedWorkspaceLegacy
+    | PersistedWorkspaceV2;

@@ -87,15 +87,23 @@ export const useWorkspaceStore =
                 activePanelId: id,
             }),
 
-        restoreWorkspace: (state) =>
-            set({
-                activeWorkspaceId: state.activeWorkspaceId,
+        restoreWorkspace: (state: WorkspaceRestorePayload) =>
+            set(() => {
+                if ('panels' in state) {
+                    return {
+                        activeWorkspaceId: state.activeWorkspaceId,
+                        activePanelId: state.activePanelId,
+                        panels: state.panels,
+                        layoutRoot: state.layoutRoot,
+                    };
+                }
 
-                activePanelId: state.activePanelId,
-
-                panels: 'panels' in state ? state.panels : [],
-
-                layoutRoot: 'layoutRoot' in state ? state.layoutRoot ?? null : null,
+                return {
+                    activeWorkspaceId: state.activeWorkspaceId,
+                    activePanelId: state.activePanelId,
+                    panels: [],
+                    layoutRoot: defaultLayout,
+                };
             }),
 
         openPanel: (id) =>

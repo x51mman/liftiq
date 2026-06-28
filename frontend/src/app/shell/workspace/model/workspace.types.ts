@@ -24,7 +24,7 @@ export interface WorkspaceState {
     activePanelId: PanelId | null;
     workspaces: WorkspaceDefinition[];
     panels: WorkspacePanel[];
-    layoutRoot: LayoutNode | null;
+    layoutRoot: LayoutNode;
 }
 
 export type PanelState =

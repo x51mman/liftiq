@@ -17,8 +17,8 @@ export interface SplitNode {
     type: "split";
     id: string;
     direction: "horizontal" | "vertical";
-    ratio: readonly number[];
-    children: readonly LayoutNode[];
+    sizes: number[];
+    children: LayoutNode[];
 }
 
 export interface FloatingNode {
