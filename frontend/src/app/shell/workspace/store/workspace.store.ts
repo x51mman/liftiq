@@ -1,8 +1,15 @@
 import { create } from "zustand";
 
-import type { WorkspaceState, WorkspaceId, PanelId } from "../model/workspace.types";
+import type {
+    WorkspaceState,
+    WorkspaceId,
+    PanelId,
+    WorkspaceRestorePayload,
+} from "../model/workspace.types";
 
+import { defaultLayout } from "../model/default-layout";
 import { workspaceCatalog } from "../model/workspace.catalog";
+import type { LayoutNode } from "../model/panel-layout.types";
 
 interface WorkspaceStore
     extends WorkspaceState {
@@ -26,6 +33,29 @@ interface WorkspaceStore
     togglePanel(
         id: PanelId,
     ): void;
+
+    restoreWorkspace(
+        state: WorkspaceRestorePayload,
+    ): void;
+
+    setLayout(
+        layout: LayoutNode,
+    ): void;
+
+    splitPanel(
+        panelId: PanelId,
+        direction: "horizontal" | "vertical",
+    ): void;
+
+    tabPanel(
+        source: PanelId,
+        target: PanelId,
+    ): void;
+
+    floatPanel(
+        panelId: PanelId,
+    ): void;
+
 }
 
 export const useWorkspaceStore =
@@ -41,10 +71,11 @@ export const useWorkspaceStore =
                 id: "dashboard-main",
                 workspaceId: "dashboard",
                 title: "Dashboard Main",
-                visible: true,
                 state: "open",
             },
         ],
+
+        layoutRoot: defaultLayout,
 
         setActiveWorkspace: (id) =>
             set({
@@ -56,13 +87,23 @@ export const useWorkspaceStore =
                 activePanelId: id,
             }),
 
+        restoreWorkspace: (state) =>
+            set({
+                activeWorkspaceId: state.activeWorkspaceId,
+
+                activePanelId: state.activePanelId,
+
+                panels: 'panels' in state ? state.panels : [],
+
+                layoutRoot: 'layoutRoot' in state ? state.layoutRoot ?? null : null,
+            }),
+
         openPanel: (id) =>
             set((state) => ({
                 panels: state.panels.map((panel) =>
                     panel.id === id
                         ? {
                             ...panel,
-                            visible: true,
                             state: "open",
                         }
                         : panel,
@@ -75,7 +116,6 @@ export const useWorkspaceStore =
                     panel.id === id
                         ? {
                             ...panel,
-                            visible: false,
                             state: "closed",
                         }
                         : panel,
@@ -88,12 +128,24 @@ export const useWorkspaceStore =
                     panel.id === id
                         ? {
                             ...panel,
-                            visible: !panel.visible,
-                            state: panel.visible
-                                ? "hidden"
-                                : "open",
+                            state:
+                                panel.state === "open"
+                                    ? "hidden"
+                                    : "open",
                         }
                         : panel,
                 ),
             })),
+
+        setLayout: (layout) =>
+            set({
+                layoutRoot: layout,
+            }),
+
+        splitPanel: () => { },
+
+        tabPanel: () => { },
+
+        floatPanel: () => { },
+
     }));

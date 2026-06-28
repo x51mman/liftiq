@@ -5,11 +5,11 @@ import {
     ContentViewport,
 } from "../../regions";
 
-import {
-    PanelManager,
-} from "../../workspace/manager";
+import { PanelManager } from "../../workspace/manager";
+import { useWorkspacePersistence } from "../../workspace/hooks";
 
 export function WorkspaceEngine() {
+    useWorkspacePersistence();
     return (
         <div className="relative z-20 flex h-full flex-col">
 

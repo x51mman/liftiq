@@ -15,6 +15,6 @@ export function useActiveWorkspacePanels() {
     return panels.filter(
         (panel) =>
             panel.workspaceId === activeWorkspaceId &&
-            panel.visible,
+            panel.state,
     );
 }

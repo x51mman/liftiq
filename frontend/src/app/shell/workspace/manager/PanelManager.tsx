@@ -1,24 +1,20 @@
-import {
-    useActiveWorkspacePanels,
-} from "../hooks";
-
-import {
-    PanelRenderer,
-} from "../renderer";
+import { useWorkspaceStore } from "../store";
+import { LayoutRenderer } from "../renderer";
 
 export function PanelManager() {
+    const layoutRoot =
+        useWorkspaceStore(
+            (state) => state.layoutRoot,
+        );
 
-    const panels =
-        useActiveWorkspacePanels();
+    if (!layoutRoot) {
+        return null;
+    }
 
     return (
-        <>
-            {panels.map((panel) => (
-                <PanelRenderer
-                    key={panel.id}
-                    panel={panel}
-                />
-            ))}
-        </>
+        <LayoutRenderer
+            node={layoutRoot}
+        />
     );
+
 }

@@ -1,3 +1,6 @@
+import type { LayoutNode }
+    from "./panel-layout.types";
+
 export type WorkspaceId =
     | "dashboard"
     | "monitoring"
@@ -21,17 +24,27 @@ export interface WorkspaceState {
     activePanelId: PanelId | null;
     workspaces: WorkspaceDefinition[];
     panels: WorkspacePanel[];
+    layoutRoot: LayoutNode | null;
 }
 
 export type PanelState =
     | "open"
     | "hidden"
+    | "floating"
+    | "minimized"
     | "closed";
 
 export interface WorkspacePanel {
     id: PanelId;
     workspaceId: WorkspaceId;
     title: string;
-    visible: boolean;
     state: PanelState;
 }
+
+export type WorkspaceRestorePayload = {
+    activeWorkspaceId: WorkspaceId;
+    activePanelId: PanelId | null;
+} & (
+        | { panels: WorkspacePanel[]; layoutRoot?: LayoutNode }
+        | { panels?: never; layoutRoot?: never } // vagy egyik se
+    );
