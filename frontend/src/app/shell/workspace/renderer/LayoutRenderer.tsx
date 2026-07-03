@@ -8,6 +8,9 @@ import { PanelRenderer }
 import { SplitRenderer }
     from "./SplitRenderer";
 
+import { TabsRenderer }
+    from "./TabsRenderer";
+
 type Props = {
     node: LayoutNode;
 };
@@ -32,9 +35,9 @@ export function LayoutRenderer({
 
         case "tabs":
             return (
-                <div>
-                    Tabs TODO
-                </div>
+                <TabsRenderer
+                    node={node}
+                />
             );
 
         case "floating":

@@ -6,3 +6,4 @@ export * from "./registry";
 export * from "./store";
 export * from "./renderer";
 export * from "./services";
+export * from "./engine";

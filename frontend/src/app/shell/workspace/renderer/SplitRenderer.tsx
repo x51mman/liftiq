@@ -1,9 +1,16 @@
+import { useRef } from "react";
+
 import type {
     SplitNode,
 } from "../model/panel-layout.types";
 
 import { LayoutRenderer }
     from "./LayoutRenderer";
+
+import { SplitDivider }
+    from "./SplitDivider";
+
+import { getDividerPositions } from "../engine";
 
 type Props = {
     node: SplitNode;
@@ -15,9 +22,19 @@ export function SplitRenderer({
     const isHorizontal =
         node.direction === "horizontal";
 
+    const containerRef =
+        useRef<HTMLDivElement>(null);
+
+    const dividerPositions =
+        getDividerPositions(
+            node.sizes,
+        );
+
     return (
         <div
+            ref={containerRef}
             className={`
+                relative
                 flex
                 h-full
                 w-full
@@ -61,6 +78,23 @@ export function SplitRenderer({
                         </div>
                     );
                 },
+            )}
+
+            {dividerPositions.map(
+                (position, index) => (
+                    <SplitDivider
+                        key={index}
+                        splitId={node.id}
+                        direction={
+                            node.direction
+                        }
+                        index={index}
+                        position={position}
+                        containerRef={
+                            containerRef
+                        }
+                    />
+                ),
             )}
         </div>
     );

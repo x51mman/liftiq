@@ -10,6 +10,7 @@ import type {
 import { defaultLayout } from "../model/default-layout";
 import { workspaceCatalog } from "../model/workspace.catalog";
 import type { LayoutNode } from "../model/panel-layout.types";
+import { updateSplitSizes, normalizeSizes, applyResizeConstraints } from "../engine";
 
 interface WorkspaceStore
     extends WorkspaceState {
@@ -54,6 +55,12 @@ interface WorkspaceStore
 
     floatPanel(
         panelId: PanelId,
+    ): void;
+
+    resizeSplit(
+        splitId: string,
+        index: number,
+        delta: number,
     ): void;
 
 }
@@ -155,5 +162,65 @@ export const useWorkspaceStore =
         tabPanel: () => { },
 
         floatPanel: () => { },
+
+        resizeSplit: (
+            splitId,
+            index,
+            delta,
+        ) =>
+            set((state) => {
+                if (!state.layoutRoot) {
+                    return state;
+                }
+
+                const nextLayout =
+                    updateSplitSizes(
+                        state.layoutRoot,
+                        splitId,
+                        (split) => {
+                            const sizes =
+                                [...split.sizes];
+
+                            const left =
+                                sizes[index];
+
+                            const right =
+                                sizes[index + 1];
+
+                            if (
+                                left === undefined ||
+                                right === undefined
+                            ) {
+                                return split;
+                            }
+
+                            const resized =
+                                applyResizeConstraints(
+                                    left,
+                                    right,
+                                    delta,
+                                );
+
+                            sizes[index] =
+                                resized.leftSize;
+
+                            sizes[index + 1] =
+                                resized.rightSize;
+
+                            return {
+                                ...split,
+                                sizes:
+                                    normalizeSizes(
+                                        sizes,
+                                    ),
+                            };
+                        },
+                    );
+
+                return {
+                    layoutRoot:
+                        nextLayout,
+                };
+            }),
 
     }));

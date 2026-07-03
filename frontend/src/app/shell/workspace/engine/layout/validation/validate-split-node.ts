@@ -1,17 +1,13 @@
-import type { SplitNode }
-    from "../model/panel-layout.types";
+import type { SplitNode } from "../../../model";
 
 export function validateSplitNode(
     node: SplitNode,
-) {
+): boolean {
     if (
         node.children.length !==
         node.sizes.length
     ) {
-        console.warn(
-            "Split children/sizes mismatch:",
-            node,
-        );
+        return false;
     }
 
     const total =
@@ -21,10 +17,7 @@ export function validateSplitNode(
         );
 
     if (Math.abs(total - 100) > 0.01) {
-        console.warn(
-            "Split sizes must total 100:",
-            node,
-        );
+        return false;
     }
 
     if (
@@ -32,9 +25,8 @@ export function validateSplitNode(
             (size) => size <= 0,
         )
     ) {
-        console.warn(
-            "Split size <= 0:",
-            node,
-        );
+        return false;
     }
+
+    return true;
 }
