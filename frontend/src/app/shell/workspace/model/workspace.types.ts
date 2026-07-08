@@ -45,6 +45,6 @@ export type WorkspaceRestorePayload = {
     activeWorkspaceId: WorkspaceId;
     activePanelId: PanelId | null;
 } & (
-        | { panels: WorkspacePanel[]; layoutRoot?: LayoutNode }
+        | { panels: WorkspacePanel[]; layoutRoot: LayoutNode }
         | { panels?: never; layoutRoot?: never } // vagy egyik se
     );

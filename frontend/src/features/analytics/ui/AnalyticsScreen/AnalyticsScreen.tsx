@@ -1,9 +1,9 @@
 import { PlaceholderScreen } from "@/features/shared";
 
-export function ServiceScreen() {
+export function AnalyticsScreen() {
     return (
         <PlaceholderScreen
-            title="Service"
+            title="Analytics"
         />
     );
 }

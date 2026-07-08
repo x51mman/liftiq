@@ -4,7 +4,7 @@ import type {
 
 import {
     visitLayout,
-} from "../traversal";
+} from "../../tree";
 
 import {
     validateSplitNode,

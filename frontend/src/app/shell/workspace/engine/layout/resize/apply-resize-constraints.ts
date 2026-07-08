@@ -1,53 +1,36 @@
+import {
+    MIN_PANEL_SIZE,
+    MAX_PANEL_SIZE,
+} from "./resize.constants";
+
 type ResizeResult = {
     leftSize: number;
     rightSize: number;
 };
-
-const MIN_PANEL_SIZE = 15;
-const MAX_PANEL_SIZE = 85;
 
 export function applyResizeConstraints(
     leftSize: number,
     rightSize: number,
     delta: number,
 ): ResizeResult {
+    const total =
+        leftSize + rightSize;
+
     let nextLeft =
         leftSize + delta;
 
-    let nextRight =
-        rightSize - delta;
-
-    if (nextLeft < MIN_PANEL_SIZE) {
-        const deficit =
-            MIN_PANEL_SIZE -
-            nextLeft;
-
-        nextLeft =
-            MIN_PANEL_SIZE;
-
-        nextRight -= deficit;
-    }
-
-    if (nextRight < MIN_PANEL_SIZE) {
-        const deficit =
-            MIN_PANEL_SIZE -
-            nextRight;
-
-        nextRight =
-            MIN_PANEL_SIZE;
-
-        nextLeft -= deficit;
-    }
+    nextLeft = Math.max(
+        MIN_PANEL_SIZE,
+        nextLeft,
+    );
 
     nextLeft = Math.min(
         MAX_PANEL_SIZE,
         nextLeft,
     );
 
-    nextRight = Math.min(
-        MAX_PANEL_SIZE,
-        nextRight,
-    );
+    const nextRight =
+        total - nextLeft;
 
     return {
         leftSize: nextLeft,

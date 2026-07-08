@@ -1,7 +1,7 @@
 import type {
     LayoutNode,
     SplitNode,
-} from "../../../model";
+} from "../../model";
 
 export function updateSplitSizes(
     root: LayoutNode,

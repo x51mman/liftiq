@@ -1,4 +1,4 @@
-import { panelRegistry } from "../registry";
+import { panelDefinitions } from "../registry";
 import type { PanelNode } from "../model/panel-layout.types";
 
 type Props = {
@@ -9,7 +9,9 @@ export function PanelRenderer({
     node,
 }: Props) {
     const Component =
-        panelRegistry[node.panelId];
+        panelDefinitions[
+            node.panelId
+        ].component;
 
     if (!Component) {
         return (

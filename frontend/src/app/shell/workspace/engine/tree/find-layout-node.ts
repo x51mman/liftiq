@@ -1,6 +1,6 @@
 import type {
     LayoutNode,
-} from "../../../model";
+} from "../../model";
 
 export function findLayoutNode(
     node: LayoutNode,

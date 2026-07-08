@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { calculateResizeDelta } from "./calculate-resize-delta";
 
 type Direction =
     | "horizontal"
@@ -50,8 +51,9 @@ export class ResizeSession {
     }
 
     start(event: React.PointerEvent) {
-        if (this.dragging)
+        if (this.dragging) {
             return;
+        }
 
         this.dragging = true;
 
@@ -122,7 +124,10 @@ export class ResizeSession {
         }
 
         const deltaPercent =
-            (diff / size) * 100;
+            calculateResizeDelta({
+                pointerDeltaPx: diff,
+                containerSizePx: size,
+            });
 
         this.onResize(
             deltaPercent,

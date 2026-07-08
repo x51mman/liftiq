@@ -1,13 +1,18 @@
 import type {
     TabsNode,
-} from "../model/panel-layout.types";
+} from "../model";
 
-import { panelRegistry }
-    from "../registry";
+import {
+    panelDefinitions,
+} from "../registry";
 
 import {
     useWorkspaceStore,
 } from "../store";
+
+import {
+    PanelHost,
+} from "./PanelHost";
 
 type Props = {
     node: TabsNode;
@@ -16,15 +21,12 @@ type Props = {
 export function TabsRenderer({
     node,
 }: Props) {
-    const setActivePanel =
-        useWorkspaceStore(
-            (state) => state.setActivePanel,
-        );
 
-    const ActiveComponent =
-        panelRegistry[
-        node.activePanelId
-        ];
+    const activeTab =
+        useWorkspaceStore(
+            (state) =>
+                state.activeTab,
+        );
 
     return (
         <div
@@ -46,34 +48,59 @@ export function TabsRenderer({
                 "
             >
                 {node.panelIds.map(
-                    (panelId) => (
-                        <button
-                            key={panelId}
-                            onClick={() =>
-                                setActivePanel(
-                                    panelId,
-                                )
-                            }
-                            className={`
-                                px-4
-                                text-sm
-                                ${panelId ===
-                                    node.activePanelId
-                                    ? "bg-cyan-500/20"
-                                    : ""
+                    (panelId) => {
+
+                        const definition =
+                            panelDefinitions[
+                            panelId
+                            ];
+
+                        const Icon =
+                            definition.icon;
+
+                        return (
+                            <button
+                                key={panelId}
+                                onClick={() =>
+                                    activeTab(
+                                        node.id,
+                                        panelId,
+                                    )
                                 }
-                            `}
-                        >
-                            {panelId}
-                        </button>
-                    ),
+                                className={`
+                                    flex
+                                    items-center
+                                    gap-2
+                                    px-4
+                                    text-sm
+
+                                    ${panelId ===
+                                        node.activePanelId
+                                        ? "bg-cyan-500/20"
+                                        : ""
+                                    }
+                                `}
+                            >
+                                <Icon size={16} />
+
+                                {definition.title}
+                            </button>
+                        );
+                    },
                 )}
             </div>
 
-            <div className="flex-1 min-h-0">
-                {ActiveComponent
-                    ? <ActiveComponent />
-                    : null}
+            <div
+                className="
+                    flex-1
+                    min-h-0
+                "
+            >
+                <PanelHost
+                    panelId={
+                        node.activePanelId
+                    }
+                />
             </div>
         </div>
     );

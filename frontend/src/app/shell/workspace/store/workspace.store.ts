@@ -5,12 +5,13 @@ import type {
     WorkspaceId,
     PanelId,
     WorkspaceRestorePayload,
-} from "../model/workspace.types";
+    LayoutNode
+} from "../model";
 
-import { defaultLayout } from "../model/default-layout";
-import { workspaceCatalog } from "../model/workspace.catalog";
-import type { LayoutNode } from "../model/panel-layout.types";
-import { updateSplitSizes, normalizeSizes, applyResizeConstraints } from "../engine";
+import { defaultLayout, workspaceCatalog, createWorkspacePanel } from "../model";
+import { updateTabsNode } from "../engine";
+import { defaultPanels } from "../model/factories/default-panels";
+import { resizeSplitCommand, splitPanelCommand } from "../engine";
 
 interface WorkspaceStore
     extends WorkspaceState {
@@ -43,11 +44,6 @@ interface WorkspaceStore
         layout: LayoutNode,
     ): void;
 
-    splitPanel(
-        panelId: PanelId,
-        direction: "horizontal" | "vertical",
-    ): void;
-
     tabPanel(
         source: PanelId,
         target: PanelId,
@@ -63,6 +59,20 @@ interface WorkspaceStore
         delta: number,
     ): void;
 
+    splitPanel(
+        targetPanelId: PanelId,
+        newPanelId: PanelId,
+        direction: "horizontal" | "vertical",
+    ): void;
+
+    addPanel(
+        panelId: PanelId,
+    ): void;
+
+    activeTab(
+        tabsId: string,
+        panelId: PanelId,
+    ): void;
 }
 
 export const useWorkspaceStore =
@@ -73,14 +83,7 @@ export const useWorkspaceStore =
 
         workspaces: workspaceCatalog,
 
-        panels: [
-            {
-                id: "dashboard-main",
-                workspaceId: "dashboard",
-                title: "Dashboard Main",
-                state: "open",
-            },
-        ],
+        panels: defaultPanels,
 
         layoutRoot: defaultLayout,
 
@@ -108,7 +111,7 @@ export const useWorkspaceStore =
                 return {
                     activeWorkspaceId: state.activeWorkspaceId,
                     activePanelId: state.activePanelId,
-                    panels: [],
+                    panels: defaultPanels,
                     layoutRoot: defaultLayout,
                 };
             }),
@@ -157,70 +160,126 @@ export const useWorkspaceStore =
                 layoutRoot: layout,
             }),
 
-        splitPanel: () => { },
-
         tabPanel: () => { },
 
         floatPanel: () => { },
 
-        resizeSplit: (
-            splitId,
-            index,
-            delta,
+        resizeSplit:
+            (
+                splitId,
+                index,
+                delta,
+            ) =>
+                set((state) => {
+
+                    if (!state.layoutRoot) {
+                        return state;
+                    }
+
+                    return {
+
+                        layoutRoot:
+
+                            resizeSplitCommand(
+                                state.layoutRoot,
+                                splitId,
+                                index,
+                                delta,
+                            ),
+                    };
+
+                }),
+
+        splitPanel: (
+            targetPanelId,
+            newPanelId,
+            direction,
         ) =>
             set((state) => {
+
                 if (!state.layoutRoot) {
                     return state;
                 }
 
-                const nextLayout =
-                    updateSplitSizes(
-                        state.layoutRoot,
-                        splitId,
-                        (split) => {
-                            const sizes =
-                                [...split.sizes];
+                const result =
+                    splitPanelCommand({
 
-                            const left =
-                                sizes[index];
+                        layout:
+                            state.layoutRoot,
 
-                            const right =
-                                sizes[index + 1];
+                        panels:
+                            state.panels,
 
-                            if (
-                                left === undefined ||
-                                right === undefined
-                            ) {
-                                return split;
-                            }
+                        targetPanelId,
 
-                            const resized =
-                                applyResizeConstraints(
-                                    left,
-                                    right,
-                                    delta,
-                                );
+                        newPanelId,
 
-                            sizes[index] =
-                                resized.leftSize;
-
-                            sizes[index + 1] =
-                                resized.rightSize;
-
-                            return {
-                                ...split,
-                                sizes:
-                                    normalizeSizes(
-                                        sizes,
-                                    ),
-                            };
-                        },
-                    );
+                        direction,
+                    });
 
                 return {
+
                     layoutRoot:
-                        nextLayout,
+                        result.layout,
+
+                    panels:
+                        result.panels,
                 };
+            }),
+
+        addPanel: (panelId) =>
+            set((state) => {
+                const exists =
+                    state.panels.some(
+                        (panel) =>
+                            panel.id === panelId,
+                    );
+
+                if (exists) {
+                    return state;
+                }
+
+                return {
+                    panels: [
+                        ...state.panels,
+                        createWorkspacePanel(
+                            panelId,
+                        ),
+                    ],
+                };
+            }),
+
+        activeTab: (
+            tabsId,
+            panelId,
+        ) =>
+            set((state) => {
+
+                if (!state.layoutRoot) {
+                    return state;
+                }
+
+                return {
+
+                    layoutRoot:
+                        updateTabsNode(
+                            state.layoutRoot,
+                            tabsId,
+
+                            node => ({
+
+                                ...node,
+
+                                activePanelId:
+                                    panelId,
+
+                            }),
+                        ),
+
+                    activePanelId:
+                        panelId,
+                };
+
             }),
 
     }));
