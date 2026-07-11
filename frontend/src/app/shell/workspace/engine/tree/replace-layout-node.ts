@@ -30,7 +30,6 @@ export function replaceLayoutNode(
 
         case "tabs":
         case "panel":
-        case "floating":
         default:
             return node;
     }

@@ -11,7 +11,7 @@ export function getWorkspaceSnapshot() {
 
         panels: state.panels,
 
-        layoutRoot: state.layoutRoot,
+        layoutRoot: state.layout,
 
     };
 }

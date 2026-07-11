@@ -22,7 +22,6 @@ export function visitLayout(
 
         case "tabs":
         case "panel":
-        case "floating":
             break;
     }
 }

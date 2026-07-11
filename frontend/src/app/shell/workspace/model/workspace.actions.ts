@@ -9,7 +9,7 @@ export function restoreWorkspace(persisted: PersistedWorkspaceState) {
             activeWorkspaceId: persisted.activeWorkspaceId,
             activePanelId: persisted.activePanelId,
             panels: persisted.panels,
-            layoutRoot: persisted.layoutRoot, // LayoutNode, nem lehet null V2-ben
+            layout: persisted.layout, // LayoutNode, nem lehet null V2-ben
         });
     } else {
         // Legacy: nincs panels/layoutRoot
@@ -17,7 +17,7 @@ export function restoreWorkspace(persisted: PersistedWorkspaceState) {
             activeWorkspaceId: persisted.activeWorkspaceId,
             activePanelId: persisted.activePanelId,
             panels: [],
-            layoutRoot: defaultLayout,
+            layout: defaultLayout,
         });
     }
 }

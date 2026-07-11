@@ -1,9 +1,12 @@
-import type { LayoutNode } from "./panel-layout.types";
 import type {
     PanelId,
     WorkspaceId,
     WorkspacePanel,
 } from "./workspace.types";
+
+import type {
+    WorkspaceLayout,
+} from "./workspace-layout.types";
 
 type PersistedWorkspaceLegacy = {
     activeWorkspaceId: WorkspaceId;
@@ -13,7 +16,7 @@ type PersistedWorkspaceLegacy = {
 type PersistedWorkspaceV2 =
     PersistedWorkspaceLegacy & {
         panels: WorkspacePanel[];
-        layoutRoot: LayoutNode;
+        layout: WorkspaceLayout;
     };
 
 export type PersistedWorkspaceState =

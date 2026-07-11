@@ -40,13 +40,6 @@ export function LayoutRenderer({
                 />
             );
 
-        case "floating":
-            return (
-                <div>
-                    Floating TODO
-                </div>
-            );
-
         default:
             return null;
     }

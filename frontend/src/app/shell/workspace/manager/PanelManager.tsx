@@ -4,7 +4,7 @@ import { LayoutRenderer } from "../renderer";
 export function PanelManager() {
     const layoutRoot =
         useWorkspaceStore(
-            (state) => state.layoutRoot,
+            (state) => state.layout,
         );
 
     if (!layoutRoot) {
@@ -13,7 +13,7 @@ export function PanelManager() {
 
     return (
         <LayoutRenderer
-            node={layoutRoot}
+            node={layoutRoot.root}
         />
     );
 

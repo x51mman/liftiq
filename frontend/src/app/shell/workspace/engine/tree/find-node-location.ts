@@ -36,7 +36,6 @@ export function findNodeLocation(
         i < root.children.length;
         i++
     ) {
-
         const child =
             root.children[i];
 

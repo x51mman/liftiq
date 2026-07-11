@@ -5,7 +5,7 @@ import type {
     WorkspaceId,
     PanelId,
     WorkspaceRestorePayload,
-    LayoutNode
+    WorkspaceLayout
 } from "../model";
 
 import { defaultLayout, workspaceCatalog, createWorkspacePanel } from "../model";
@@ -41,7 +41,7 @@ interface WorkspaceStore
     ): void;
 
     setLayout(
-        layout: LayoutNode,
+        layout: WorkspaceLayout,
     ): void;
 
     tabPanel(
@@ -85,7 +85,7 @@ export const useWorkspaceStore =
 
         panels: defaultPanels,
 
-        layoutRoot: defaultLayout,
+        layout: defaultLayout,
 
         setActiveWorkspace: (id) =>
             set({
@@ -104,7 +104,7 @@ export const useWorkspaceStore =
                         activeWorkspaceId: state.activeWorkspaceId,
                         activePanelId: state.activePanelId,
                         panels: state.panels,
-                        layoutRoot: state.layoutRoot,
+                        layout: state.layout,
                     };
                 }
 
@@ -112,7 +112,7 @@ export const useWorkspaceStore =
                     activeWorkspaceId: state.activeWorkspaceId,
                     activePanelId: state.activePanelId,
                     panels: defaultPanels,
-                    layoutRoot: defaultLayout,
+                    layout: defaultLayout,
                 };
             }),
 
@@ -157,7 +157,7 @@ export const useWorkspaceStore =
 
         setLayout: (layout) =>
             set({
-                layoutRoot: layout,
+                layout: layout,
             }),
 
         tabPanel: () => { },
@@ -172,20 +172,20 @@ export const useWorkspaceStore =
             ) =>
                 set((state) => {
 
-                    if (!state.layoutRoot) {
+                    if (!state.layout.root) {
                         return state;
                     }
 
                     return {
-
-                        layoutRoot:
-
-                            resizeSplitCommand(
-                                state.layoutRoot,
+                        layout: {
+                            ...state.layout,
+                            root: resizeSplitCommand(
+                                state.layout.root,
                                 splitId,
                                 index,
                                 delta,
                             ),
+                        },
                     };
 
                 }),
@@ -197,7 +197,7 @@ export const useWorkspaceStore =
         ) =>
             set((state) => {
 
-                if (!state.layoutRoot) {
+                if (!state.layout.root) {
                     return state;
                 }
 
@@ -205,7 +205,7 @@ export const useWorkspaceStore =
                     splitPanelCommand({
 
                         layout:
-                            state.layoutRoot,
+                            state.layout.root,
 
                         panels:
                             state.panels,
@@ -218,12 +218,11 @@ export const useWorkspaceStore =
                     });
 
                 return {
-
-                    layoutRoot:
-                        result.layout,
-
-                    panels:
-                        result.panels,
+                    layout: {
+                        ...state.layout,
+                        root: result.layout,
+                    },
+                    panels: result.panels,
                 };
             }),
 
@@ -255,26 +254,27 @@ export const useWorkspaceStore =
         ) =>
             set((state) => {
 
-                if (!state.layoutRoot) {
+                if (!state.layout.root) {
                     return state;
                 }
 
                 return {
 
-                    layoutRoot:
-                        updateTabsNode(
-                            state.layoutRoot,
-                            tabsId,
+                    layout: {
 
-                            node => ({
+                        ...state.layout,
 
-                                ...node,
-
-                                activePanelId:
-                                    panelId,
-
-                            }),
-                        ),
+                        root:
+                            updateTabsNode(
+                                state.layout.root,
+                                tabsId,
+                                node => ({
+                                    ...node,
+                                    activePanelId:
+                                        panelId,
+                                }),
+                            ),
+                    },
 
                     activePanelId:
                         panelId,

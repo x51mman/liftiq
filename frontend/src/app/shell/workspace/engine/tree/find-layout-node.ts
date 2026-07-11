@@ -32,9 +32,6 @@ export function findLayoutNode(
         case "panel":
             return null;
 
-        case "floating":
-            return null;
-
         default:
             return null;
     }

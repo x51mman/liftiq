@@ -1,10 +1,6 @@
-import type {
-    LayoutNode,
-} from "../../model";
+import type { LayoutNode } from "../../model";
 
-import {
-    rebuildSplitSizes,
-} from "../layout";
+import { removeChildFromSplit } from "../layout";
 
 export function removeLayoutNode(
     root: LayoutNode,
@@ -15,26 +11,30 @@ export function removeLayoutNode(
 
         case "split": {
 
-            const children =
-                root.children
-                    .filter(
-                        child =>
-                            child.id !== nodeId,
-                    )
-                    .map(
+            const directChildIndex =
+                root.children.findIndex(
+                    child =>
+                        child.id === nodeId,
+                );
+
+            if (
+                directChildIndex >= 0
+            ) {
+                return removeChildFromSplit(
+                    root,
+                    directChildIndex,
+                );
+            }
+
+            return {
+                ...root,
+                children:
+                    root.children.map(
                         child =>
                             removeLayoutNode(
                                 child,
                                 nodeId,
                             ),
-                    );
-
-            return {
-                ...root,
-                children,
-                sizes:
-                    rebuildSplitSizes(
-                        children.length,
                     ),
             };
         }

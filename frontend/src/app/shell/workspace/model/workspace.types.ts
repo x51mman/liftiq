@@ -1,5 +1,6 @@
-import type { LayoutNode }
-    from "./panel-layout.types";
+import type {
+    WorkspaceLayout,
+} from "./workspace-layout.types";
 
 export type WorkspaceId =
     | "dashboard"
@@ -24,7 +25,7 @@ export interface WorkspaceState {
     activePanelId: PanelId | null;
     workspaces: WorkspaceDefinition[];
     panels: WorkspacePanel[];
-    layoutRoot: LayoutNode;
+    layout: WorkspaceLayout;
 }
 
 export type PanelState =
@@ -45,6 +46,6 @@ export type WorkspaceRestorePayload = {
     activeWorkspaceId: WorkspaceId;
     activePanelId: PanelId | null;
 } & (
-        | { panels: WorkspacePanel[]; layoutRoot: LayoutNode }
-        | { panels?: never; layoutRoot?: never } // vagy egyik se
+        | { panels: WorkspacePanel[]; layout: WorkspaceLayout; }
+        | { panels?: never; layout?: never } // vagy egyik se
     );

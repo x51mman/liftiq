@@ -6,3 +6,4 @@ export * from "./default-layout";
 export * from "./panel-layout.types";
 export * from "./panel.helpers";
 export * from "./factories";
+export * from "./workspace-layout.types";

@@ -6,3 +6,5 @@ export * from "./collapse-single-child-split";
 export * from "./update-split-sizes";
 export * from "./update-tabs-node";
 export * from "./visit-layout";
+export * from "./find-panel-container"
+export * from "./find-panel-container-location";

@@ -19,7 +19,7 @@ export function serializeWorkspace():
             state.activePanelId,
         panels:
             state.panels,
-        layoutRoot:
-            state.layoutRoot,
+        layout:
+            state.layout,
     };
 }

@@ -11,7 +11,7 @@ export function deserializeWorkspace(
             activeWorkspaceId: persisted.activeWorkspaceId,
             activePanelId: persisted.activePanelId,
             panels: persisted.panels,
-            layoutRoot: persisted.layoutRoot ?? defaultLayout, // biztosan van
+            layout: persisted.layout ?? defaultLayout, // biztosan van
         };
     }
 
@@ -20,6 +20,6 @@ export function deserializeWorkspace(
         activeWorkspaceId: persisted.activeWorkspaceId,
         activePanelId: persisted.activePanelId,
         panels: [], // default
-        layoutRoot: defaultLayout, // default
+        layout: defaultLayout, // default
     };
 }

@@ -36,5 +36,4 @@ export interface FloatingNode {
 export type LayoutNode =
     | PanelNode
     | TabsNode
-    | SplitNode
-    | FloatingNode;
+    | SplitNode;
