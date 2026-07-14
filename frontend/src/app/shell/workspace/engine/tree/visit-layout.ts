@@ -7,17 +7,24 @@ export function visitLayout(
     visitor: (
         node: LayoutNode,
     ) => void,
-) {
+): void {
+
     visitor(node);
 
     switch (node.type) {
+
         case "split":
-            for (const child of node.children) {
+
+            for (
+                const child
+                of node.children
+            ) {
                 visitLayout(
                     child,
                     visitor,
                 );
             }
+
             break;
 
         case "tabs":

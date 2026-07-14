@@ -4,23 +4,17 @@ import type {
 } from "../../../model";
 
 import {
-    replaceLayoutNode,
-    removeLayoutNode,
-    collapseSingleChildSplit,
     findPanelContainerLocation,
 } from "../../tree";
-
-import { createTabsNode } from "../../../model";
-
-import {
-    addPanelToTabsNode,
-    removePanelFromTabsNode,
-    collapseTabsNode,
-} from "../tabs";
 
 import {
     isSameTabsContainer,
 } from "../tabs";
+
+import {
+    insertPanelAsTab,
+    removePanelFromContainer,
+} from "../docking";
 
 type Result = {
     layout: LayoutNode;
@@ -72,106 +66,17 @@ export function executeTabPanelCommand(
         };
     }
 
-    let nextLayout =
-        layout;
+    const detachedLayout =
+        removePanelFromContainer(
+            layout,
+            sourcePanelId,
+        );
 
-    //
-    // TARGET
-    //
-
-    switch (
-    target.container.type
-    ) {
-
-        case "panel":
-
-            nextLayout =
-                replaceLayoutNode(
-                    nextLayout,
-                    target.container.id,
-                    () =>
-                        createTabsNode(
-                            [
-                                targetPanelId,
-                                sourcePanelId,
-                            ],
-                            sourcePanelId,
-                        ),
-                );
-
-            break;
-
-        case "tabs":
-
-            nextLayout =
-                replaceLayoutNode(
-                    nextLayout,
-                    target.container.id,
-                    (node) => {
-
-                        if (
-                            node.type !== "tabs"
-                        ) {
-                            return node;
-                        }
-
-                        return addPanelToTabsNode(
-                            node,
-                            sourcePanelId,
-                        );
-                    },
-                );
-
-            break;
-    }
-
-    //
-    // SOURCE
-    //
-
-    switch (
-    source.container.type
-    ) {
-
-        case "panel":
-
-            nextLayout =
-                removeLayoutNode(
-                    nextLayout,
-                    source.container.id,
-                );
-
-            break;
-
-        case "tabs":
-
-            nextLayout =
-                replaceLayoutNode(
-                    nextLayout,
-                    source.container.id,
-                    (node) => {
-
-                        if (
-                            node.type !== "tabs"
-                        ) {
-                            return node;
-                        }
-
-                        return collapseTabsNode(
-                            removePanelFromTabsNode(
-                                node,
-                                sourcePanelId,
-                            ),
-                        );
-                    },
-                );
-
-            break;
-    }
-
-    nextLayout =
-        collapseSingleChildSplit(
-            nextLayout,
+    const nextLayout =
+        insertPanelAsTab(
+            detachedLayout,
+            sourcePanelId,
+            targetPanelId,
         );
 
     return {

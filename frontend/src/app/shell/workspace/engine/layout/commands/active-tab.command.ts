@@ -1,16 +1,40 @@
 import type {
     PanelId,
-    WorkspaceState,
+    WorkspaceLayout,
 } from "../../../model";
 
+import {
+    updateTabsNode,
+} from "../../tree";
+
+type Result = {
+    layout: WorkspaceLayout;
+};
+
 export function executeActiveTabCommand(
-    _state: WorkspaceState,
+    layout: WorkspaceLayout,
+    tabsId: string,
     panelId: PanelId,
-): Pick<
-    WorkspaceState,
-    "activePanelId"
-> {
+): Result {
+
     return {
-        activePanelId: panelId,
+
+        layout: {
+
+            ...layout,
+
+            root:
+                updateTabsNode(
+                    layout.root,
+                    tabsId,
+                    node => ({
+
+                        ...node,
+
+                        activePanelId:
+                            panelId,
+                    }),
+                ),
+        },
     };
 }

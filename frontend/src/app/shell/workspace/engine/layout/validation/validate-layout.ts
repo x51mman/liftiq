@@ -1,6 +1,11 @@
 import type {
-    LayoutNode,
+    WorkspaceLayout,
 } from "../../../model";
+
+import type {
+    ValidationResult,
+    ValidationIssue,
+} from "./validation.types";
 
 import {
     visitLayout,
@@ -10,41 +15,81 @@ import {
     validateSplitNode,
 } from "./validate-split-node";
 
+import {
+    validateTabsNode,
+} from "./validate-tabs-node";
+
+import {
+    collectDuplicatePanelIds,
+} from "./collect-duplicate-panel-ids";
+
 export function validateLayout(
-    root: LayoutNode,
-): boolean {
-    let valid = true;
+    layout: WorkspaceLayout,
+): ValidationResult {
 
-    visitLayout(root, (node) => {
-        switch (node.type) {
-            case "split":
-                if (
-                    node.children.length < 2
-                ) {
-                    valid = false;
-                    return;
-                }
+    const issues:
+        ValidationIssue[] = [];
 
-                if (
-                    !validateSplitNode(
-                        node,
-                    )
-                ) {
-                    valid = false;
-                }
 
-                break;
+    //
+    // node checks
+    //
 
-            case "tabs":
-                if (
-                    node.panelIds.length === 0
-                ) {
-                    valid = false;
-                }
+    visitLayout(
+        layout.root,
+        node => {
 
-                break;
-        }
-    });
+            switch (
+            node.type
+            ) {
 
-    return valid;
+                case "split":
+
+                    issues.push(
+                        ...validateSplitNode(
+                            node,
+                        ),
+                    );
+
+                    break;
+
+                case "tabs":
+
+                    issues.push(
+                        ...validateTabsNode(
+                            node,
+                        ),
+                    );
+
+                    break;
+            }
+        },
+    );
+
+    const duplicates =
+        collectDuplicatePanelIds(
+            layout,
+        );
+
+    for (
+        const panelId
+        of duplicates
+    ) {
+        issues.push({
+
+            code:
+                "duplicate-panel",
+
+            message:
+                `Panel "${panelId}" appears multiple times.`,
+        });
+    }
+
+    return {
+
+        valid:
+            issues.length === 0,
+
+        issues,
+    };
 }

@@ -1,13 +1,13 @@
 import type {
+    LayoutNode,
     PanelId,
-    FloatingNode,
 } from "../../../model";
 
 import {
+    findPanelContainerLocation,
     replaceLayoutNode,
     removeLayoutNode,
     collapseSingleChildSplit,
-    findPanelContainerLocation,
 } from "../../tree";
 
 import {
@@ -15,38 +15,23 @@ import {
     collapseTabsNode,
 } from "../tabs";
 
-import {
-    createLayoutNodeId,
-} from "../id";
-
-import type {
-    WorkspaceLayout,
-} from "../../../model";
-
-type Result = {
-    layout: WorkspaceLayout;
-};
-
-export function executeFloatPanelCommand(
-    layout: WorkspaceLayout,
+export function removePanelFromContainer(
+    layout: LayoutNode,
     panelId: PanelId,
-): Result {
-
+): LayoutNode {
 
     const location =
         findPanelContainerLocation(
-            layout.root,
+            layout,
             panelId,
         );
 
     if (!location) {
-        return {
-            layout,
-        };
+        return layout;
     }
 
-    let nextRoot =
-        layout.root;
+    let nextLayout =
+        layout;
 
     switch (
     location.container.type
@@ -54,9 +39,9 @@ export function executeFloatPanelCommand(
 
         case "panel":
 
-            nextRoot =
+            nextLayout =
                 removeLayoutNode(
-                    nextRoot,
+                    nextLayout,
                     location.container.id,
                 );
 
@@ -64,9 +49,9 @@ export function executeFloatPanelCommand(
 
         case "tabs":
 
-            nextRoot =
+            nextLayout =
                 replaceLayoutNode(
-                    nextRoot,
+                    nextLayout,
                     location.container.id,
                     (node) => {
 
@@ -88,38 +73,7 @@ export function executeFloatPanelCommand(
             break;
     }
 
-    nextRoot =
-        collapseSingleChildSplit(
-            nextRoot,
-        );
-
-    const floatingNode: FloatingNode = {
-
-        type: "floating",
-
-        id:
-            createLayoutNodeId(),
-
-        panelId,
-
-        x: 120,
-        y: 120,
-
-        width: 800,
-        height: 600,
-    };
-
-    return {
-        layout: {
-
-            root:
-                nextRoot,
-
-            floating: [
-                ...layout.floating,
-                floatingNode,
-            ],
-        },
-    };
-
+    return collapseSingleChildSplit(
+        nextLayout,
+    );
 }
