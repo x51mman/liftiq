@@ -1,20 +1,32 @@
 import { useWorkspaceStore } from "../store";
-import { LayoutRenderer } from "../renderer";
+import { LayoutRenderer, FloatingRenderer } from "../renderer";
 
 export function PanelManager() {
-    const layoutRoot =
+    const layout =
         useWorkspaceStore(
             (state) => state.layout,
         );
 
-    if (!layoutRoot) {
+    if (!layout) {
         return null;
     }
 
     return (
-        <LayoutRenderer
-            node={layoutRoot.root}
-        />
+
+        <>
+
+            <LayoutRenderer
+                node={layout.root}
+            />
+
+            <FloatingRenderer
+                nodes={
+                    layout.floating
+                }
+            />
+
+        </>
+
     );
 
 }
