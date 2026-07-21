@@ -1,11 +1,11 @@
 import type {
     PanelId,
     WorkspaceState,
-} from "../../../model";
+} from "@model";
 
 import {
     createWorkspacePanel,
-} from "../../../model";
+} from "@model";
 
 export function executeAddPanelCommand(
     state: WorkspaceState,

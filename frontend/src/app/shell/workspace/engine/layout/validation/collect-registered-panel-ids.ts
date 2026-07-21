@@ -1,7 +1,7 @@
 import type {
     PanelId,
     WorkspacePanel,
-} from "../../../model";
+} from "@model";
 
 export function collectRegisteredPanelIds(
     panels: WorkspacePanel[],

@@ -5,3 +5,4 @@ export * from "./validation";
 export * from "./commands";
 export * from "./id";
 export * from "./docking";
+export * from "./floating";

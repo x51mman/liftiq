@@ -1,7 +1,7 @@
 import type {
     PanelId,
     WorkspaceLayout,
-} from "../../../model";
+} from "@model";
 
 export function collectFloatingPanelIds(
     layout: WorkspaceLayout,

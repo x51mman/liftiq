@@ -1,11 +1,11 @@
 import type {
     LayoutNode,
     TabsNode,
-} from "../../../model";
+} from "@model";
 
 import {
     createPanelNode,
-} from "../../../model";
+} from "@model";
 
 export function collapseTabsNode(
     node: TabsNode,

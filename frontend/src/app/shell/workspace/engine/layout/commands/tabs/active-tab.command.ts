@@ -1,11 +1,11 @@
 import type {
     PanelId,
     WorkspaceLayout,
-} from "../../../model";
+} from "@model";
 
 import {
     updateTabsNode,
-} from "../../tree";
+} from "@tree";
 
 type Result = {
     layout: WorkspaceLayout;

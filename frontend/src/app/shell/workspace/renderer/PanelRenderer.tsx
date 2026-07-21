@@ -1,5 +1,6 @@
 import { panelDefinitions } from "../registry";
 import type { PanelNode } from "../model/panel-layout.types";
+import { PanelSurface } from "./PanelSurface";
 
 type Props = {
     node: PanelNode;
@@ -22,5 +23,14 @@ export function PanelRenderer({
         );
     }
 
-    return <Component />;
+    return (
+
+        <PanelSurface
+            panelId={node.panelId}
+        >
+
+            <Component />
+
+        </PanelSurface>
+    );
 }

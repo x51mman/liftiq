@@ -1,11 +1,11 @@
 import type {
     PanelId,
     WorkspaceLayout,
-} from "../../../model";
+} from "@model";
 
 import {
     dockPanelIntoContainer,
-} from "../docking";
+} from "../../docking";
 
 type Result = {
     layout: WorkspaceLayout;

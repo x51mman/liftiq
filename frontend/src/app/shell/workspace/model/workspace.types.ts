@@ -1,6 +1,6 @@
-import type {
-    WorkspaceLayout,
-} from "./workspace-layout.types";
+import type { WorkspaceLayout } from "./workspace-layout.types";
+import type { DockPreviewState } from "./docking-preview.types";
+import type { PanelDragState } from "./panel-drag.types";
 
 export type WorkspaceId =
     | "dashboard"
@@ -26,6 +26,8 @@ export interface WorkspaceState {
     workspaces: WorkspaceDefinition[];
     panels: WorkspacePanel[];
     layout: WorkspaceLayout;
+    dockPreview: DockPreviewState | null;
+    draggingPanel: PanelDragState | null;
 }
 
 export type PanelState =

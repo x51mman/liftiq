@@ -1,16 +1,16 @@
 import type {
     LayoutNode,
     PanelId,
-} from "../../../model";
+} from "@model";
 
 import {
     replaceLayoutNode,
     findPanelContainerLocation,
-} from "../../tree";
+} from "@tree";
 
 import {
     createTabsNode,
-} from "../../../model";
+} from "@model";
 
 import {
     addPanelToTabsNode,

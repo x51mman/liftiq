@@ -1,7 +1,7 @@
 import type {
     LayoutNode,
     PanelId,
-} from "../../../model";
+} from "@model";
 
 import {
     insertPanelAsTab,

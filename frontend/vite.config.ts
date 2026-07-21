@@ -12,6 +12,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@model": path.resolve(__dirname, "./src/app/shell/workspace/model"),
+      "@tree": path.resolve(__dirname, "./src/app/shell/workspace/engine/tree"),
     },
   },
 });

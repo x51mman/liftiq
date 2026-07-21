@@ -1,6 +1,6 @@
 import type {
     PanelId,
-} from "../../../model";
+} from "@model";
 
 import type {
     ValidationIssue,

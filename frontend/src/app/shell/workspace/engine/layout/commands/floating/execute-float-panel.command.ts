@@ -1,16 +1,11 @@
 import type {
     PanelId,
-    FloatingNode,
     WorkspaceLayout,
-} from "../../../model";
+} from "@model";
 
-import {
-    removePanelFromContainer,
-} from "../docking";
+import { removePanelFromContainer } from "../../docking";
 
-import {
-    createLayoutNodeId,
-} from "../id";
+import { createFloatingNode } from "../../floating";
 
 type Result = {
     layout: WorkspaceLayout;
@@ -39,21 +34,10 @@ export function executeFloatPanelCommand(
             panelId,
         );
 
-    const floatingNode: FloatingNode = {
-
-        type: "floating",
-
-        id:
-            createLayoutNodeId(),
-
-        panelId,
-
-        x: 120,
-        y: 120,
-
-        width: 800,
-        height: 600,
-    };
+    const floatingNode =
+        createFloatingNode(
+            panelId,
+        );
 
     return {
 

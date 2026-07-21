@@ -1,6 +1,6 @@
 import type {
     TabsNode,
-} from "../../../model";
+} from "@model";
 
 import type {
     ValidationIssue,

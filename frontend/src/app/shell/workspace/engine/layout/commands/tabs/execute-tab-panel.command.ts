@@ -1,20 +1,20 @@
 import type {
     LayoutNode,
     PanelId,
-} from "../../../model";
+} from "@model";
 
 import {
     findPanelContainerLocation,
-} from "../../tree";
+} from "@tree";
 
 import {
     isSameTabsContainer,
-} from "../tabs";
+} from "../../tabs";
 
 import {
     insertPanelAsTab,
     removePanelFromContainer,
-} from "../docking";
+} from "../../docking";
 
 type Result = {
     layout: LayoutNode;

@@ -1,7 +1,7 @@
 import type {
     WorkspaceLayout,
     WorkspacePanel,
-} from "../../../model";
+} from "@model";
 
 import type {
     ValidationIssue,

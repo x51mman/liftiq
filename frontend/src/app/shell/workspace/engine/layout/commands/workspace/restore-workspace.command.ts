@@ -1,15 +1,15 @@
 import type {
     WorkspaceRestorePayload,
     WorkspaceState,
-} from "../../../model";
+} from "@model";
 
 import {
     defaultLayout,
-} from "../../../model";
+} from "@model";
 
 import {
     defaultPanels,
-} from "../../../model/factories/default-panels";
+} from "@model/factories/default-panels";
 
 export function executeRestoreWorkspaceCommand(
     payload: WorkspaceRestorePayload,

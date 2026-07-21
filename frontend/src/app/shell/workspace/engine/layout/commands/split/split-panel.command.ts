@@ -2,16 +2,16 @@ import type {
     LayoutNode,
     PanelId,
     WorkspacePanel,
-} from "../../../model";
+} from "@model";
 
 import {
     replaceLayoutNode,
-} from "../../tree";
+} from "@tree";
 
 import {
     createPanelNode,
     createWorkspacePanel,
-} from "../../../model";
+} from "@model";
 
 type Params = {
 

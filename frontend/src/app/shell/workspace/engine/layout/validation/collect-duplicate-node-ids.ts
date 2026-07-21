@@ -1,10 +1,10 @@
 import type {
     LayoutNode,
-} from "../../../model";
+} from "@model";
 
 import {
     visitLayout,
-} from "../../tree";
+} from "@tree";
 
 export function collectDuplicateNodeIds(
     root: LayoutNode,

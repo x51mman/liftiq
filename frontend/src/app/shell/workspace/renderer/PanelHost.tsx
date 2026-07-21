@@ -2,6 +2,8 @@ import { panelDefinitions } from "../registry";
 
 import type { PanelId } from "../model";
 
+import { PanelSurface } from "./PanelSurface";
+
 type Props = {
     panelId: PanelId;
 };
@@ -19,5 +21,14 @@ export function PanelHost({
         return null;
     }
 
-    return <Component />;
+    return (
+
+        <PanelSurface
+            panelId={panelId}
+        >
+
+            <Component />
+
+        </PanelSurface>
+    );
 }

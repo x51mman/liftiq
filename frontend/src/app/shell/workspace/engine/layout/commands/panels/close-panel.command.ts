@@ -1,7 +1,7 @@
 import type {
     PanelId,
     WorkspaceState,
-} from "../../../model";
+} from "@model";
 
 export function executeClosePanelCommand(
     state: WorkspaceState,

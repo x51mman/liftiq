@@ -7,3 +7,5 @@ export * from "./panel-layout.types";
 export * from "./panel.helpers";
 export * from "./factories";
 export * from "./workspace-layout.types";
+export * from "./docking-preview.types";
+export * from "./panel-drag.types";

@@ -4,3 +4,8 @@ export * from "./SplitRenderer";
 export * from "./FloatingRenderer";
 export * from "./PanelHost";
 export * from "./FloatingWindow";
+export * from "./DockPreviewOverlay";
+export * from "./DockPreviewRenderer";
+export * from "./panel-dom-registry";
+export * from "./PanelSurface";
+export * from "./calculate-dock-preview-rect";

@@ -1,6 +1,6 @@
 import type {
     SplitNode,
-} from "../../../model";
+} from "@model";
 
 import type {
     ValidationIssue,

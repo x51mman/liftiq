@@ -1,13 +1,13 @@
 import type {
     WorkspaceLayout,
-} from "../../../model";
+} from "@model";
 
 import type {
     ValidationResult,
     ValidationIssue,
 } from "./validation.types";
 
-import { visitLayout } from "../../tree";
+import { visitLayout } from "@tree";
 
 import { validateSplitNode } from "./validate-split-node";
 

@@ -25,10 +25,8 @@ export interface FloatingNode {
     type: "floating";
     id: string;
     panelId: PanelId;
-
     x: number;
     y: number;
-
     width: number;
     height: number;
 }

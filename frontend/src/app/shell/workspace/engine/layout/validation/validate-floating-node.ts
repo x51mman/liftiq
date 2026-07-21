@@ -1,6 +1,6 @@
 import type {
     FloatingNode,
-} from "../../../model";
+} from "@model";
 
 import type {
     ValidationIssue,

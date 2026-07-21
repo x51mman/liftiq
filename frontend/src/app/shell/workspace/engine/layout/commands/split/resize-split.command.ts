@@ -1,18 +1,14 @@
 import type {
     LayoutNode,
-} from "../../../model";
+} from "@model";
 
 import {
     updateSplitSizes,
-} from "../../tree";
+} from "@tree";
 
 import {
-    normalizeSizes,
-} from "../resize";
-
-import {
-    applyResizeConstraints,
-} from "../resize";
+    normalizeSizes, applyResizeConstraints
+} from "../../resize";
 
 export function resizeSplitCommand(
     layout: LayoutNode,

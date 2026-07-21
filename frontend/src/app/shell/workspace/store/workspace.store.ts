@@ -5,7 +5,8 @@ import type {
     WorkspaceId,
     PanelId,
     WorkspaceRestorePayload,
-    WorkspaceLayout
+    WorkspaceLayout,
+    DockPreviewPosition,
 } from "../model";
 
 import { defaultLayout, workspaceCatalog } from "../model";
@@ -15,8 +16,12 @@ import {
     executeFloatPanelCommand, executeTabPanelCommand, executeActiveTabCommand,
     executeClosePanelCommand, executeOpenPanelCommand, executeTogglePanelCommand,
     resizeSplitCommand, splitPanelCommand, executeAddPanelCommand,
-    executeRestoreWorkspaceCommand,
+    executeRestoreWorkspaceCommand, executeMoveFloatingWindowCommand,
+    executeResizeFloatingWindowCommand, executeCloseFloatingWindowCommand,
+    executeBringFloatingWindowToFrontCommand, executeHideDockPreviewCommand,
+    executeShowDockPreviewCommand,
 } from "../engine";
+
 
 interface WorkspaceStore
     extends WorkspaceState {
@@ -58,6 +63,26 @@ interface WorkspaceStore
         panelId: PanelId,
     ): void;
 
+    moveFloatingWindow(
+        nodeId: string,
+        x: number,
+        y: number,
+    ): void;
+
+    resizeFloatingWindow(
+        nodeId: string,
+        width: number,
+        height: number,
+    ): void;
+
+    closeFloatingWindow(
+        nodeId: string,
+    ): void;
+
+    bringFloatingWindowToFront(
+        nodeId: string,
+    ): void;
+
     resizeSplit(
         splitId: string,
         index: number,
@@ -78,6 +103,13 @@ interface WorkspaceStore
         tabsId: string,
         panelId: PanelId,
     ): void;
+
+    showDockPreview(
+        targetPanelId: PanelId,
+        position: DockPreviewPosition,
+    ): void;
+
+    hideDockPreview(): void;
 }
 
 export const useWorkspaceStore =
@@ -91,6 +123,10 @@ export const useWorkspaceStore =
         panels: defaultPanels,
 
         layout: defaultLayout,
+
+        dockPreview: null,
+
+        draggingPanel: null,
 
         setActiveWorkspace: (id) =>
             set({
@@ -180,6 +216,83 @@ export const useWorkspaceStore =
                     executeFloatPanelCommand(
                         state.layout,
                         panelId,
+                    );
+
+                return {
+
+                    layout:
+                        result.layout,
+                };
+            }),
+
+        moveFloatingWindow: (
+            nodeId,
+            x,
+            y,
+        ) =>
+            set((state) => {
+
+                const result =
+                    executeMoveFloatingWindowCommand(
+                        state.layout,
+                        nodeId,
+                        x,
+                        y,
+                    );
+
+                return {
+                    layout:
+                        result.layout,
+                };
+            }),
+
+        resizeFloatingWindow: (
+            nodeId,
+            width,
+            height,
+        ) =>
+            set((state) => {
+
+                const result =
+                    executeResizeFloatingWindowCommand(
+                        state.layout,
+                        nodeId,
+                        width,
+                        height,
+                    );
+
+                return {
+                    layout:
+                        result.layout,
+                };
+            }),
+
+        closeFloatingWindow: (
+            nodeId,
+        ) =>
+            set((state) => {
+
+                const result =
+                    executeCloseFloatingWindowCommand(
+                        state.layout,
+                        nodeId,
+                    );
+
+                return {
+                    layout:
+                        result.layout,
+                };
+            }),
+
+        bringFloatingWindowToFront: (
+            nodeId,
+        ) =>
+            set((state) => {
+
+                const result =
+                    executeBringFloatingWindowToFrontCommand(
+                        state.layout,
+                        nodeId,
                     );
 
                 return {
@@ -283,5 +396,21 @@ export const useWorkspaceStore =
                         panelId,
                 };
             }),
+
+        showDockPreview: (
+            targetPanelId,
+            position,
+        ) =>
+            set(
+                executeShowDockPreviewCommand(
+                    targetPanelId,
+                    position,
+                ),
+            ),
+
+        hideDockPreview: () =>
+            set(
+                executeHideDockPreviewCommand(),
+            ),
 
     }));

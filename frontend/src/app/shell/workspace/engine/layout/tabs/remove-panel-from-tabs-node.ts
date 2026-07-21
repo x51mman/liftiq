@@ -1,7 +1,7 @@
 import type {
     PanelId,
     TabsNode,
-} from "../../../model";
+} from "@model";
 
 export function removePanelFromTabsNode(
     tabs: TabsNode,

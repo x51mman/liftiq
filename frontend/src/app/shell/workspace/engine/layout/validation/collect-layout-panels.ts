@@ -1,11 +1,11 @@
 import type {
     PanelId,
     WorkspaceLayout,
-} from "../../../model";
+} from "@model";
 
 import {
     visitLayout,
-} from "../../tree";
+} from "@tree";
 
 export function collectLayoutPanels(
     layout: WorkspaceLayout,
