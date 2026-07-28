@@ -10,11 +10,23 @@ import type {
 
 import {
     panelDefinitions,
-} from "../registry";
+} from "../registry/panel.definitions";
 
 import {
     useWorkspaceStore,
 } from "../store";
+
+import {
+    findPanelUnderPointer,
+} from "./find-panel-under-pointer";
+
+import {
+    getPanelElement,
+} from "./panel-dom-registry";
+
+import {
+    calculateDockPosition,
+} from "./calculate-dock-position";
 
 type Props = {
     node: FloatingNode;
@@ -23,6 +35,18 @@ type Props = {
 export function FloatingWindow({
     node,
 }: Props) {
+
+    const showDockPreview =
+        useWorkspaceStore(
+            state =>
+                state.showDockPreview,
+        );
+
+    const hideDockPreview =
+        useWorkspaceStore(
+            state =>
+                state.hideDockPreview,
+        );
 
     const moveFloatingWindow =
         useWorkspaceStore(
@@ -40,6 +64,12 @@ export function FloatingWindow({
         useWorkspaceStore(
             state =>
                 state.bringFloatingWindowToFront,
+        );
+
+    const dockPanel =
+        useWorkspaceStore(
+            state =>
+                state.dockPanel,
         );
 
     const definition =
@@ -134,6 +164,47 @@ export function FloatingWindow({
                     deltaY,
             };
 
+            const targetPanelId =
+                findPanelUnderPointer(
+                    event.clientX,
+                    event.clientY,
+                    node.panelId,
+                );
+
+            if (!targetPanelId) {
+
+                hideDockPreview();
+
+            } else {
+
+                const targetElement =
+                    getPanelElement(
+                        targetPanelId,
+                    );
+
+                if (!targetElement) {
+
+                    hideDockPreview();
+
+                } else {
+
+                    const rect =
+                        targetElement.getBoundingClientRect();
+
+                    const position =
+                        calculateDockPosition(
+                            rect,
+                            event.clientX,
+                            event.clientY,
+                        );
+
+                    showDockPreview(
+                        targetPanelId,
+                        position,
+                    );
+                }
+            }
+
             if (
                 rafRef.current ===
                 null
@@ -146,6 +217,9 @@ export function FloatingWindow({
 
         }, [
             flushPosition,
+            hideDockPreview,
+            showDockPreview,
+            node.panelId,
         ]);
 
     const handlePointerUp =
@@ -185,12 +259,45 @@ export function FloatingWindow({
 
             flushPosition();
 
+            const preview =
+                useWorkspaceStore
+                    .getState()
+                    .dockPreview;
+
+            if (preview) {
+
+                dockPanel(
+
+                    node.panelId,
+
+                    preview.targetPanelId,
+
+                    preview.position,
+                );
+            }
+
+            hideDockPreview();
+
             nextPositionRef.current =
                 null;
 
+            dragRef.current = {
+
+                startPointerX: 0,
+                startPointerY: 0,
+
+                startX: 0,
+                startY: 0,
+
+                isDragging: false,
+            };
+
         }, [
-            handlePointerMove,
+            dockPanel,
             flushPosition,
+            handlePointerMove,
+            hideDockPreview,
+            node.panelId,
         ]);
 
     useEffect(() => {
@@ -295,6 +402,11 @@ export function FloatingWindow({
                 "
                 onPointerDown={event => {
 
+                    event.currentTarget
+                        .setPointerCapture(
+                            event.pointerId,
+                        );
+
                     dragRef.current = {
 
                         startPointerX:
@@ -348,9 +460,7 @@ export function FloatingWindow({
                         px-2
                         rounded
                     "
-                    aria-label="
-                        Close window
-                    "
+                    aria-label="Close window"
                 >
                     ×
                 </button>

@@ -8,7 +8,7 @@ import {
 } from "@model";
 
 import {
-    defaultPanels,
+    createDefaultPanels,
 } from "@model/factories/default-panels";
 
 export function executeRestoreWorkspaceCommand(
@@ -50,7 +50,7 @@ export function executeRestoreWorkspaceCommand(
             payload.activePanelId,
 
         panels:
-            defaultPanels,
+            createDefaultPanels(),
 
         layout:
             defaultLayout,

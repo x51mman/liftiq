@@ -6,9 +6,12 @@ import {
     createWorkspacePanel,
 } from "./create-workspace-panel";
 
-export const defaultPanels:
-    WorkspacePanel[] = [
+export function createDefaultPanels():
+    WorkspacePanel[] {
+
+    return [
         createWorkspacePanel(
             "dashboard-main",
         ),
     ];
+}

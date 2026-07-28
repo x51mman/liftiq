@@ -1,4 +1,4 @@
-import type { PanelId } from "../model";
+import type { PanelId } from "../model/workspace.types";
 
 import type { PanelDefinition } from "./panel.types";
 

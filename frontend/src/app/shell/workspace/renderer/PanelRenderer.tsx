@@ -1,4 +1,4 @@
-import { panelDefinitions } from "../registry";
+import { panelDefinitions } from "../registry/panel.definitions";
 import type { PanelNode } from "../model/panel-layout.types";
 import { PanelSurface } from "./PanelSurface";
 

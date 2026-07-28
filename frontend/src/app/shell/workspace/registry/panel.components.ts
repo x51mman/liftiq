@@ -5,7 +5,7 @@ import { MonitoringScreen } from "@/features/monitoring";
 import { ServiceScreen } from "@/features/service";
 import { AnalyticsScreen } from "@/features/analytics";
 
-import type { PanelId } from "../model";
+import type { PanelId } from "../model/workspace.types";
 
 export const panelComponents: Record<
     PanelId,

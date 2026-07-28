@@ -4,7 +4,7 @@ import type {
 
 import {
     panelDefinitions,
-} from "../registry";
+} from "../registry/panel.definitions";
 
 import {
     useWorkspaceStore,

@@ -1,6 +1,7 @@
 import type {
     PanelId,
     WorkspaceLayout,
+    DockPreviewPosition,
 } from "@model";
 
 import {
@@ -15,6 +16,7 @@ export function executeDockPanelCommand(
     layout: WorkspaceLayout,
     sourcePanelId: PanelId,
     targetPanelId: PanelId,
+    position: DockPreviewPosition,
 ): Result {
 
     const isFloating =
@@ -34,7 +36,7 @@ export function executeDockPanelCommand(
             layout.root,
             sourcePanelId,
             targetPanelId,
-            "tab",
+            position,
         );
 
     return {

@@ -1,5 +1,9 @@
 import type { PanelId } from "./workspace.types";
 
+export type SplitDirection =
+    | "horizontal"
+    | "vertical";
+
 export interface PanelNode {
     type: "panel";
     id: string;
@@ -16,7 +20,7 @@ export interface TabsNode {
 export interface SplitNode {
     type: "split";
     id: string;
-    direction: "horizontal" | "vertical";
+    direction: SplitDirection;
     sizes: number[];
     children: LayoutNode[];
 }

@@ -10,7 +10,7 @@ import type {
 } from "../model";
 
 import { defaultLayout, workspaceCatalog } from "../model";
-import { defaultPanels } from "../model/factories/default-panels";
+import { createDefaultPanels } from "../model/factories/default-panels";
 
 import {
     executeFloatPanelCommand, executeTabPanelCommand, executeActiveTabCommand,
@@ -19,7 +19,7 @@ import {
     executeRestoreWorkspaceCommand, executeMoveFloatingWindowCommand,
     executeResizeFloatingWindowCommand, executeCloseFloatingWindowCommand,
     executeBringFloatingWindowToFrontCommand, executeHideDockPreviewCommand,
-    executeShowDockPreviewCommand,
+    executeShowDockPreviewCommand, executeDockPanelCommand,
 } from "../engine";
 
 
@@ -99,6 +99,12 @@ interface WorkspaceStore
         panelId: PanelId,
     ): void;
 
+    dockPanel(
+        sourcePanelId: PanelId,
+        targetPanelId: PanelId,
+        position: DockPreviewPosition,
+    ): void;
+
     activeTab(
         tabsId: string,
         panelId: PanelId,
@@ -120,7 +126,7 @@ export const useWorkspaceStore =
 
         workspaces: workspaceCatalog,
 
-        panels: defaultPanels,
+        panels: createDefaultPanels(),
 
         layout: defaultLayout,
 
@@ -373,6 +379,27 @@ export const useWorkspaceStore =
                     panelId,
                 ),
             ),
+
+        dockPanel: (
+            sourcePanelId,
+            targetPanelId,
+            position,
+        ) =>
+            set((state) => {
+
+                const result =
+                    executeDockPanelCommand(
+                        state.layout,
+                        sourcePanelId,
+                        targetPanelId,
+                        position,
+                    );
+
+                return {
+                    layout:
+                        result.layout,
+                };
+            }),
 
         activeTab: (
             tabsId,

@@ -5,7 +5,7 @@ import type {
     PanelId,
     WorkspaceId,
     PanelState,
-} from "../model";
+} from "../model/workspace.types";
 
 export interface PanelMetadata {
     workspaceId: WorkspaceId;

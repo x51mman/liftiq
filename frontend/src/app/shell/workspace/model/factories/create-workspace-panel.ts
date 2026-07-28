@@ -4,29 +4,28 @@ import type {
 } from "../workspace.types";
 
 import {
-    panelDefinitions,
-} from "../../registry";
+    panelMetadata,
+} from "../../registry/panel.metadata";
 
 export function createWorkspacePanel(
     panelId: PanelId,
 ): WorkspacePanel {
-    const definition =
-        panelDefinitions[panelId];
+
+
+    const metadata =
+        panelMetadata[panelId];
 
     return {
-
-        id:
-            definition.id,
+        id: panelId,
 
         workspaceId:
-            definition.workspaceId,
+            metadata.workspaceId,
 
         title:
-            definition.title,
+            metadata.title,
 
         state:
-            definition.defaultState,
+            metadata.defaultState,
     };
-
 
 }

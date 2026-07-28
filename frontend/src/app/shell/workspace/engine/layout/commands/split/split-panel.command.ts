@@ -13,6 +13,10 @@ import {
     createWorkspacePanel,
 } from "@model";
 
+import {
+    createLayoutNodeId,
+} from "../../id";
+
 type Params = {
 
     layout: LayoutNode;
@@ -55,8 +59,7 @@ export function splitPanelCommand({
 
                     type: "split",
 
-                    id:
-                        crypto.randomUUID(),
+                    id: createLayoutNodeId(),
 
                     direction,
 

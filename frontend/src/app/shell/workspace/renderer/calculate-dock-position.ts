@@ -20,21 +20,21 @@ export function calculateDockPosition(
     const height =
         rect.height;
 
-    const centerX =
+    const centerMarginX =
         width * 0.25;
 
-    const centerY =
+    const centerMarginY =
         height * 0.25;
 
     const inCenterX =
 
-        localX > centerX &&
-        localX < width - centerX;
+        localX > centerMarginX &&
+        localX < width - centerMarginX;
 
     const inCenterY =
 
-        localY > centerY &&
-        localY < height - centerY;
+        localY > centerMarginY &&
+        localY < height - centerMarginY;
 
     if (
         inCenterX &&

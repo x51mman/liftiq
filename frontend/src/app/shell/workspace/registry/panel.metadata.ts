@@ -7,7 +7,7 @@ import {
 
 import type {
     PanelId,
-} from "../model";
+} from "../model/workspace.types";
 
 import type {
     PanelMetadata,

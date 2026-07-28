@@ -1,6 +1,6 @@
-import { panelDefinitions } from "../registry";
+import { panelDefinitions } from "../registry/panel.definitions";
 
-import type { PanelId } from "../model";
+import type { PanelId } from "../model/workspace.types";
 
 import { PanelSurface } from "./PanelSurface";
 
