@@ -3,6 +3,7 @@ import {
     LayoutDashboard,
     Wrench,
     ChartColumn,
+    TrendingUp,
 } from "lucide-react";
 
 import type {
@@ -28,14 +29,34 @@ export const panelMetadata: Record<
         permission: "dashboard:view",
     },
 
-    "monitoring-main": {
-        workspaceId: "monitoring",
-        title: "Monitoring",
-        icon: Activity,
-        defaultState: "hidden",
+    "users-main": {
+        workspaceId: "users",
+        title: "Users",
+        icon: ChartColumn,
+        defaultState: "open",
         closable: true,
         pinnable: true,
-        permission: "monitoring:view",
+        permission: "users:view",
+    },
+
+    "elevators-main": {
+        workspaceId: "elevators",
+        title: "Elevators",
+        icon: TrendingUp,
+        defaultState: "open",
+        closable: true,
+        pinnable: true,
+        permission: "elevators:view",
+    },
+
+    "audit-main": {
+        workspaceId: "audit",
+        title: "Audit",
+        icon: Wrench,
+        defaultState: "open",
+        closable: true,
+        pinnable: true,
+        permission: "audit:view",
     },
 
     "service-main": {
@@ -48,13 +69,23 @@ export const panelMetadata: Record<
         permission: "service:view",
     },
 
-    "analytics-main": {
-        workspaceId: "analytics",
-        title: "Analytics",
-        icon: ChartColumn,
+    "settings-main": {
+        workspaceId: "settings",
+        title: "Settings",
+        icon: Wrench,
         defaultState: "hidden",
         closable: true,
         pinnable: true,
-        permission: "analytics:view",
+        permission: "settings:view",
+    },
+
+    "monitoring-main": {
+        workspaceId: "monitoring",
+        title: "Monitoring",
+        icon: Activity,
+        defaultState: "visible",
+        closable: true,
+        pinnable: true,
+        permission: "monitoring:view",
     },
 }

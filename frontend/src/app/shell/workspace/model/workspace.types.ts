@@ -4,15 +4,21 @@ import type { PanelDragState } from "./panel-drag.types";
 
 export type WorkspaceId =
     | "dashboard"
-    | "monitoring"
+    | "users"
+    | "elevators"
+    | "audit"
     | "service"
-    | "analytics";
+    | "settings"
+    | "monitoring";
 
 export type PanelId =
     | "dashboard-main"
-    | "monitoring-main"
+    | "users-main"
+    | "elevators-main"
+    | "audit-main"
     | "service-main"
-    | "analytics-main";
+    | "settings-main"
+    | "monitoring-main";
 
 export interface WorkspaceDefinition {
     id: WorkspaceId;
@@ -35,6 +41,7 @@ export type PanelState =
     | "hidden"
     | "floating"
     | "minimized"
+    | "visible"
     | "closed";
 
 export interface WorkspacePanel {

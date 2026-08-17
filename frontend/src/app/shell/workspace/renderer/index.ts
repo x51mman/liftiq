@@ -9,3 +9,5 @@ export * from "./DockPreviewRenderer";
 export * from "./panel-dom-registry";
 export * from "./PanelSurface";
 export * from "./calculate-dock-preview-rect";
+export * from "./PanelFrame";
+export * from "./PanelHeader";

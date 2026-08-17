@@ -14,14 +14,14 @@ import { createDefaultPanels } from "../model/factories/default-panels";
 
 import {
     executeFloatPanelCommand, executeTabPanelCommand, executeActiveTabCommand,
-    executeClosePanelCommand, executeOpenPanelCommand, executeTogglePanelCommand,
+    executeClosePanelCommand, executeTogglePanelCommand,
     resizeSplitCommand, splitPanelCommand, executeAddPanelCommand,
     executeRestoreWorkspaceCommand, executeMoveFloatingWindowCommand,
     executeResizeFloatingWindowCommand, executeCloseFloatingWindowCommand,
     executeBringFloatingWindowToFrontCommand, executeHideDockPreviewCommand,
-    executeShowDockPreviewCommand, executeDockPanelCommand,
+    executeShowDockPreviewCommand, executeDockPanelCommand, executeUndockPanelCommand,
+    executeOpenPanelCommand,
 } from "../engine";
-
 
 interface WorkspaceStore
     extends WorkspaceState {
@@ -105,6 +105,10 @@ interface WorkspaceStore
         position: DockPreviewPosition,
     ): void;
 
+    undockPanel(
+        panelId: PanelId,
+    ): void;
+
     activeTab(
         tabsId: string,
         panelId: PanelId,
@@ -156,12 +160,19 @@ export const useWorkspaceStore =
         openPanel: (
             panelId,
         ) =>
-            set((state) =>
-                executeOpenPanelCommand(
-                    state,
-                    panelId,
-                ),
-            ),
+            set((state) => {
+
+                const result =
+                    executeOpenPanelCommand(
+                        state.layout,
+                        panelId,
+                    );
+
+                return {
+                    layout:
+                        result.layout,
+                };
+            }),
 
         closePanel: (
             panelId,
@@ -393,6 +404,23 @@ export const useWorkspaceStore =
                         sourcePanelId,
                         targetPanelId,
                         position,
+                    );
+
+                return {
+                    layout:
+                        result.layout,
+                };
+            }),
+
+        undockPanel: (
+            panelId,
+        ) =>
+            set((state) => {
+
+                const result =
+                    executeUndockPanelCommand(
+                        state.layout,
+                        panelId,
                     );
 
                 return {

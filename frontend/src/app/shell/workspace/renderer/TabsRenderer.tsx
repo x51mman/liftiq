@@ -11,8 +11,8 @@ import {
 } from "../store";
 
 import {
-    PanelHost,
-} from "./PanelHost";
+    PanelFrame,
+} from "./PanelFrame";
 
 type Props = {
     node: TabsNode;
@@ -24,11 +24,23 @@ export function TabsRenderer({
 
     const activeTab =
         useWorkspaceStore(
-            (state) =>
+            state =>
                 state.activeTab,
         );
 
+    const undockPanel =
+        useWorkspaceStore(
+            state =>
+                state.undockPanel,
+        );
+
+    const ActiveComponent =
+        panelDefinitions[
+            node.activePanelId
+        ].component;
+
     return (
+
         <div
             className="
                 flex
@@ -38,6 +50,7 @@ export function TabsRenderer({
                 overflow-hidden
             "
         >
+
             <div
                 className="
                     flex
@@ -47,8 +60,9 @@ export function TabsRenderer({
                     border-cyan-500/20
                 "
             >
+
                 {node.panelIds.map(
-                    (panelId) => {
+                    panelId => {
 
                         const definition =
                             panelDefinitions[
@@ -59,35 +73,66 @@ export function TabsRenderer({
                             definition.icon;
 
                         return (
-                            <button
+
+                            <div
                                 key={panelId}
-                                onClick={() =>
-                                    activeTab(
-                                        node.id,
-                                        panelId,
-                                    )
-                                }
-                                className={`
+                                className="
                                     flex
                                     items-center
-                                    gap-2
-                                    px-4
-                                    text-sm
-
-                                    ${panelId ===
-                                        node.activePanelId
-                                        ? "bg-cyan-500/20"
-                                        : ""
-                                    }
-                                `}
+                                "
                             >
-                                <Icon size={16} />
 
-                                {definition.title}
-                            </button>
+                                <button
+                                    onClick={() =>
+                                        activeTab(
+                                            node.id,
+                                            panelId,
+                                        )
+                                    }
+                                    className={`
+                                        flex
+                                        items-center
+                                        gap-2
+                                        px-4
+                                        text-sm
+
+                                        ${panelId ===
+                                            node.activePanelId
+                                            ? "bg-cyan-500/20"
+                                            : ""
+                                        }
+                                    `}
+                                >
+                                    <Icon size={16} />
+
+                                    {
+                                        definition.title
+                                    }
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        undockPanel(
+                                            panelId,
+                                        )
+                                    }
+                                    className="
+                                        px-2
+                                        text-xs
+                                        opacity-60
+                                        hover:opacity-100
+                                    "
+                                    title="Undock"
+                                >
+                                    ↗
+                                </button>
+
+                            </div>
+
                         );
                     },
                 )}
+
             </div>
 
             <div
@@ -96,12 +141,21 @@ export function TabsRenderer({
                     min-h-0
                 "
             >
-                <PanelHost
+
+                <PanelFrame
                     panelId={
                         node.activePanelId
                     }
-                />
+                    showHeader={false}
+                >
+
+                    <ActiveComponent />
+
+                </PanelFrame>
+
             </div>
+
         </div>
+
     );
 }

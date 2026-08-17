@@ -28,6 +28,10 @@ import {
     calculateDockPosition,
 } from "./calculate-dock-position";
 
+import {
+    PanelHeader,
+} from "./PanelHeader";
+
 type Props = {
     node: FloatingNode;
 };
@@ -385,21 +389,13 @@ export function FloatingWindow({
             }
         >
 
-            <div
-                className="
-                    h-10
-                    px-3
-
-                    flex
-                    items-center
-                    justify-between
-
-                    border-b
-
-                    select-none
-                    touch-none
-                    cursor-move
-                "
+            <PanelHeader
+                panelId={node.panelId}
+                onClose={() =>
+                    closeFloatingWindow(
+                        node.id,
+                    )
+                }
                 onPointerDown={event => {
 
                     event.currentTarget
@@ -435,37 +431,7 @@ export function FloatingWindow({
                         handlePointerUp,
                     );
                 }}
-            >
-
-                <span
-                    className="
-                        text-sm
-                        font-medium
-                    "
-                >
-                    {definition.title}
-                </span>
-
-                <button
-                    onPointerDown={
-                        event =>
-                            event.stopPropagation()
-                    }
-                    onClick={() =>
-                        closeFloatingWindow(
-                            node.id,
-                        )
-                    }
-                    className="
-                        px-2
-                        rounded
-                    "
-                    aria-label="Close window"
-                >
-                    ×
-                </button>
-
-            </div>
+            />
 
             <div
                 className="

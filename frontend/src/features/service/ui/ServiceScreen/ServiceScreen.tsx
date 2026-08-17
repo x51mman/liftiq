@@ -1,9 +1,7 @@
-import { PlaceholderScreen } from "@/features/shared";
-
 export function ServiceScreen() {
     return (
-        <PlaceholderScreen
-            title="Service"
-        />
+        <div className="p-6">
+            Service
+        </div>
     );
 }

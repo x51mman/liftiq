@@ -1,6 +1,6 @@
 export function ElevatorsScreen() {
     return (
-        <div>
+        <div className="p-6">
             Elevators
         </div>
     );

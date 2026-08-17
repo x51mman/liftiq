@@ -3,9 +3,13 @@ import type {
     WorkspaceLayout,
 } from "@model";
 
-import { removePanelFromContainer } from "../../docking";
+import {
+    removePanelFromContainer,
+} from "../../docking";
 
-import { createFloatingNode } from "../../floating";
+import {
+    createFloatingNode,
+} from "../../floating";
 
 import { findPanelContainerLocation } from "@tree";
 
@@ -13,7 +17,7 @@ type Result = {
     layout: WorkspaceLayout;
 };
 
-export function executeFloatPanelCommand(
+export function executeUndockPanelCommand(
     layout: WorkspaceLayout,
     panelId: PanelId,
 ): Result {
@@ -31,7 +35,9 @@ export function executeFloatPanelCommand(
         );
 
     if (!location && alreadyFloating) {
-        return { layout };
+        return {
+            layout,
+        };
     }
 
     const nextRoot =

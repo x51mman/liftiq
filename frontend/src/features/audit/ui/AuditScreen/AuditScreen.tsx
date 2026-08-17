@@ -1,6 +1,6 @@
 export function AuditScreen() {
     return (
-        <div>
+        <div className="p-6">
             Audit
         </div>
     );

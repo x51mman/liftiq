@@ -8,15 +8,27 @@ export const workspaceCatalog: WorkspaceDefinition[] = [
         title: "Dashboard",
     },
     {
-        id: "monitoring",
-        title: "Monitoring",
+        id: "users",
+        title: "Users",
+    },
+    {
+        id: "elevators",
+        title: "Elevators",
+    },
+    {
+        id: "audit",
+        title: "Audit",
     },
     {
         id: "service",
         title: "Service",
     },
     {
-        id: "analytics",
-        title: "Analytics",
+        id: "settings",
+        title: "Settings",
+    },
+    {
+        id: "monitoring",
+        title: "Monitoring",
     },
 ];

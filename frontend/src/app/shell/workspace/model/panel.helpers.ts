@@ -16,10 +16,26 @@ export function panelIdToWorkspaceId(
 
     if (
         panelId.startsWith(
-            "monitoring",
+            "users",
         )
     ) {
-        return "monitoring";
+        return "users";
+    }
+
+    if (
+        panelId.startsWith(
+            "elevators",
+        )
+    ) {
+        return "elevators";
+    }
+
+    if (
+        panelId.startsWith(
+            "audit",
+        )
+    ) {
+        return "audit";
     }
 
     if (
@@ -30,5 +46,13 @@ export function panelIdToWorkspaceId(
         return "service";
     }
 
-    return "analytics";
+    if (
+        panelId.startsWith(
+            "settings",
+        )
+    ) {
+        return "settings";
+    }
+
+    return "monitoring";
 }

@@ -21,6 +21,11 @@ export function useWorkspacePersistence() {
     const restored =
         useRef(false);
 
+    const layout =
+        useWorkspaceStore(
+            state => state.layout,
+        );
+
     const restoreWorkspace =
         useWorkspaceStore(
             (state) =>
@@ -73,5 +78,6 @@ export function useWorkspacePersistence() {
         activeWorkspaceId,
         activePanelId,
         panels,
+        layout,
     ]);
 }
