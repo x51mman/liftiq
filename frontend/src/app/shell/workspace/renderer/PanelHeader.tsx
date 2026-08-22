@@ -10,17 +10,21 @@ type Props = {
 
     panelId: PanelId;
 
+    isFocused?: boolean;
+
     onUndock?: () => void;
 
     onClose?: () => void;
 
     onPointerDown?: (
-        event: React.PointerEvent<HTMLDivElement>,
+        event:
+            React.PointerEvent<HTMLDivElement>,
     ) => void;
 };
 
 export function PanelHeader({
     panelId,
+    isFocused = false,
     onUndock,
     onClose,
     onPointerDown,
@@ -31,6 +35,10 @@ export function PanelHeader({
         panelId
         ];
 
+    if (!definition) {
+        return null;
+    }
+
     const Icon =
         definition.icon;
 
@@ -40,7 +48,7 @@ export function PanelHeader({
             onPointerDown={
                 onPointerDown
             }
-            className="
+            className={`
                 flex
                 h-10
                 shrink-0
@@ -49,14 +57,26 @@ export function PanelHeader({
                 justify-between
 
                 border-b
-                border-cyan-500/20
-
-                bg-background
 
                 px-3
 
                 select-none
-            "
+
+                transition-[border-color,background-color,box-shadow]
+                duration-150
+
+                ${isFocused
+                    ? `
+                            border-cyan-400/60
+                            bg-cyan-500/10
+                            shadow-[inset_0_-1px_0_rgba(34,211,238,0.35)]
+                        `
+                    : `
+                            border-cyan-500/20
+                            bg-background
+                        `
+                }
+            `}
         >
 
             <div
@@ -66,15 +86,21 @@ export function PanelHeader({
                     gap-2
                 "
             >
-                <Icon size={16} />
+
+                <Icon
+                    size={16}
+                />
 
                 <span
                     className="
                         text-sm
                     "
                 >
-                    {definition.title}
+                    {
+                        definition.title
+                    }
                 </span>
+
             </div>
 
             <div
@@ -88,6 +114,7 @@ export function PanelHeader({
                 {onUndock && (
 
                     <button
+                        type="button"
                         onPointerDown={
                             event =>
                                 event.stopPropagation()
@@ -95,6 +122,16 @@ export function PanelHeader({
                         onClick={
                             onUndock
                         }
+                        className="
+                            rounded
+                            px-2
+                            text-sm
+                            opacity-70
+                            transition-opacity
+                            hover:opacity-100
+                        "
+                        title="Undock"
+                        aria-label="Undock"
                     >
                         ↗
                     </button>
@@ -104,6 +141,7 @@ export function PanelHeader({
                 {onClose && (
 
                     <button
+                        type="button"
                         onPointerDown={
                             event =>
                                 event.stopPropagation()
@@ -111,6 +149,16 @@ export function PanelHeader({
                         onClick={
                             onClose
                         }
+                        className="
+                            rounded
+                            px-2
+                            text-sm
+                            opacity-70
+                            transition-opacity
+                            hover:opacity-100
+                        "
+                        title="Close"
+                        aria-label="Close"
                     >
                         ×
                     </button>
@@ -120,6 +168,5 @@ export function PanelHeader({
             </div>
 
         </div>
-
     );
 }

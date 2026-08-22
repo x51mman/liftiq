@@ -1,10 +1,14 @@
-import type {
-    PanelId,
-} from "../model";
-
 import {
     PanelHeader,
 } from "./PanelHeader";
+
+import {
+    useWorkspaceStore,
+} from "../store";
+
+import type {
+    PanelId,
+} from "../model";
 
 type Props = {
 
@@ -18,6 +22,12 @@ type Props = {
     onUndock?: () => void;
 
     onClose?: () => void;
+
+    onFocus?: () => void;
+
+    onHeaderPointerDown?: (
+        event: React.PointerEvent<HTMLDivElement>,
+    ) => void;
 };
 
 export function PanelFrame({
@@ -26,26 +36,78 @@ export function PanelFrame({
     showHeader = true,
     onUndock,
     onClose,
+    onFocus,
+    onHeaderPointerDown,
 }: Props) {
+
+    const activePanelId =
+        useWorkspaceStore(
+            state =>
+                state.activePanelId,
+        );
+
+    const focusPanel =
+        useWorkspaceStore(
+            state =>
+                state.focusPanel,
+        );
+
+    const isFocused =
+        activePanelId ===
+        panelId;
+
+    const handleFocus =
+        () => {
+
+            focusPanel(
+                panelId,
+            );
+
+            onFocus?.();
+        };
 
     return (
 
         <div
-            className="
+            onPointerDown={
+                handleFocus
+            }
+            className={`
                 flex
                 h-full
                 w-full
                 flex-col
                 overflow-hidden
-            "
+
+                transition-[border,box-shadow,background-color]
+                duration-150
+
+                ${isFocused
+                    ? `
+                            border
+                            border-cyan-400/70
+                            shadow-[0_0_14px_rgba(34,211,238,0.18)]
+                        `
+                    : `
+                            border
+                            border-cyan-500/10
+                        `
+                }
+            `}
         >
 
             {showHeader && (
 
                 <PanelHeader
                     panelId={panelId}
+
+                    isFocused={isFocused}
+
                     onUndock={onUndock}
+
                     onClose={onClose}
+
+                    onPointerDown={onHeaderPointerDown}
                 />
 
             )}
@@ -61,6 +123,5 @@ export function PanelFrame({
             </div>
 
         </div>
-
     );
 }

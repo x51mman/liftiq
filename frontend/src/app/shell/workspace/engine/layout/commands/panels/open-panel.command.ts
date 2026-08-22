@@ -8,7 +8,7 @@ import {
 } from "@tree";
 
 import {
-    createFloatingNode,
+    createFloatingNode, getNextFloatingZIndex
 } from "../../floating";
 
 type Result = {
@@ -59,9 +59,16 @@ export function executeOpenPanelCommand(
      * Az alkalmazás első megnyitása
      * floating window-ként történik.
      */
+
+    const nextZIndex =
+        getNextFloatingZIndex(
+            layout.floating,
+        );
+
     const floatingNode =
         createFloatingNode(
             panelId,
+            nextZIndex,
         );
 
     return {

@@ -1,6 +1,22 @@
-import { panelDefinitions } from "../registry/panel.definitions";
-import type { PanelNode } from "../model/panel-layout.types";
-import { PanelSurface } from "./PanelSurface";
+import {
+    panelDefinitions,
+} from "../registry/panel.definitions";
+
+import type {
+    PanelNode,
+} from "../model/panel-layout.types";
+
+import {
+    PanelSurface,
+} from "./PanelSurface";
+
+import {
+    PanelFrame,
+} from "./PanelFrame";
+
+import {
+    useWorkspaceStore,
+} from "../store";
 
 type Props = {
     node: PanelNode;
@@ -9,27 +25,70 @@ type Props = {
 export function PanelRenderer({
     node,
 }: Props) {
-    const Component =
-        panelDefinitions[
-            node.panelId
-        ].component;
 
-    if (!Component) {
+    const definition =
+        panelDefinitions[
+        node.panelId
+        ];
+
+    const undockPanel =
+        useWorkspaceStore(
+            state =>
+                state.undockPanel,
+        );
+
+    const closePanel =
+        useWorkspaceStore(
+            state =>
+                state.closePanel,
+        );
+
+    if (!definition) {
+
         return (
-            <div className="p-4 text-red-400">
+            <div
+                className="
+                    p-4
+                    text-red-400
+                "
+            >
                 Missing panel:
+                {" "}
                 {node.panelId}
             </div>
         );
     }
 
+    const Component =
+        definition.component;
+
     return (
 
         <PanelSurface
-            panelId={node.panelId}
+            panelId={
+                node.panelId
+            }
         >
 
-            <Component />
+            <PanelFrame
+                panelId={node.panelId}
+
+                onUndock={() =>
+                    undockPanel(
+                        node.panelId,
+                    )
+                }
+
+                onClose={() =>
+                    closePanel(
+                        node.panelId,
+                    )
+                }
+            >
+
+                <Component />
+
+            </PanelFrame>
 
         </PanelSurface>
     );

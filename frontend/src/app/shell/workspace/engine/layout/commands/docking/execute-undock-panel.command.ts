@@ -8,7 +8,7 @@ import {
 } from "../../docking";
 
 import {
-    createFloatingNode,
+    createFloatingNode, getNextFloatingZIndex,
 } from "../../floating";
 
 import { findPanelContainerLocation } from "@tree";
@@ -46,9 +46,15 @@ export function executeUndockPanelCommand(
             panelId,
         );
 
+    const nextZIndex =
+        getNextFloatingZIndex(
+            layout.floating,
+        );
+
     const floatingNode =
         createFloatingNode(
             panelId,
+            nextZIndex,
         );
 
     return {

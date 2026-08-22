@@ -33,6 +33,7 @@ export interface FloatingNode {
     y: number;
     width: number;
     height: number;
+    zIndex: number;
 }
 
 export type LayoutNode =

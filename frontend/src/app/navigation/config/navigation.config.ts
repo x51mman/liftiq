@@ -1,35 +1,34 @@
 import type { NavigationItem } from "../model";
-import { routes } from "@/app/config";
 
 export const navigationItems: NavigationItem[] = [
     {
         id: "dashboard",
         label: "Dashboard",
-        path: routes.dashboard,
+        panelId: "dashboard-main",
     },
     {
         id: "users",
         label: "Users",
-        path: routes.users,
+        panelId: "users-main",
     },
     {
         id: "elevators",
         label: "Elevators",
-        path: routes.elevators,
+        panelId: "elevators-main",
     },
     {
         id: "audit",
         label: "Audit",
-        path: routes.audit,
+        panelId: "audit-main",
     },
     {
         id: "service",
         label: "Service",
-        path: routes.service,
+        panelId: "service-main",
     },
     {
         id: "settings",
         label: "Settings",
-        path: routes.settings,
+        panelId: "settings-main",
     },
 ];

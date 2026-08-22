@@ -28,9 +28,7 @@ import {
     calculateDockPosition,
 } from "./calculate-dock-position";
 
-import {
-    PanelHeader,
-} from "./PanelHeader";
+import { PanelFrame } from "./PanelFrame";
 
 type Props = {
     node: FloatingNode;
@@ -117,11 +115,8 @@ export function FloatingWindow({
             }
 
             moveFloatingWindow(
-
                 node.id,
-
                 nextPosition.x,
-
                 nextPosition.y,
             );
 
@@ -193,7 +188,8 @@ export function FloatingWindow({
                 } else {
 
                     const rect =
-                        targetElement.getBoundingClientRect();
+                        targetElement
+                            .getBoundingClientRect();
 
                     const position =
                         calculateDockPosition(
@@ -271,11 +267,8 @@ export function FloatingWindow({
             if (preview) {
 
                 dockPanel(
-
                     node.panelId,
-
                     preview.targetPanelId,
-
                     preview.position,
                 );
             }
@@ -302,6 +295,64 @@ export function FloatingWindow({
             handlePointerMove,
             hideDockPreview,
             node.panelId,
+        ]);
+
+    const handleHeaderPointerDown =
+        useCallback((
+            event:
+                React.PointerEvent<HTMLDivElement>,
+        ) => {
+
+            /*
+             * A header pointer-down also bubbles
+             * through PanelFrame, where the panel
+             * receives normal workspace focus.
+             */
+
+            event.currentTarget
+                .setPointerCapture(
+                    event.pointerId,
+                );
+
+            bringFloatingWindowToFront(
+                node.id,
+            );
+
+            dragRef.current = {
+
+                startPointerX:
+                    event.clientX,
+
+                startPointerY:
+                    event.clientY,
+
+                startX:
+                    node.x,
+
+                startY:
+                    node.y,
+
+                isDragging:
+                    true,
+            };
+
+            window.addEventListener(
+                "pointermove",
+                handlePointerMove,
+            );
+
+            window.addEventListener(
+                "pointerup",
+                handlePointerUp,
+            );
+
+        }, [
+            bringFloatingWindowToFront,
+            handlePointerMove,
+            handlePointerUp,
+            node.id,
+            node.x,
+            node.y,
         ]);
 
     useEffect(() => {
@@ -339,12 +390,18 @@ export function FloatingWindow({
             <div
                 className="
                     absolute
-                    border
                     rounded-md
+                    border
                     bg-background
                     p-4
                     text-red-500
                 "
+                style={{
+                    left: node.x,
+                    top: node.y,
+                    width: node.width,
+                    height: node.height,
+                }}
             >
                 Unknown panel:
                 {" "}
@@ -361,26 +418,18 @@ export function FloatingWindow({
         <div
             className="
                 absolute
-                flex
-                flex-col
-
-                border
+                overflow-hidden
                 rounded-md
-
+                border
                 bg-background
                 shadow-lg
-
-                overflow-hidden
             "
             style={{
-
                 left: node.x,
-
                 top: node.y,
-
                 width: node.width,
-
                 height: node.height,
+                zIndex: node.zIndex,
             }}
             onPointerDown={() =>
                 bringFloatingWindowToFront(
@@ -388,59 +437,27 @@ export function FloatingWindow({
                 )
             }
         >
-
-            <PanelHeader
+            <PanelFrame
                 panelId={node.panelId}
+
                 onClose={() =>
                     closeFloatingWindow(
                         node.id,
                     )
                 }
-                onPointerDown={event => {
 
-                    event.currentTarget
-                        .setPointerCapture(
-                            event.pointerId,
-                        );
+                onFocus={() =>
+                    bringFloatingWindowToFront(
+                        node.id,
+                    )
+                }
 
-                    dragRef.current = {
-
-                        startPointerX:
-                            event.clientX,
-
-                        startPointerY:
-                            event.clientY,
-
-                        startX:
-                            node.x,
-
-                        startY:
-                            node.y,
-
-                        isDragging:
-                            true,
-                    };
-
-                    window.addEventListener(
-                        "pointermove",
-                        handlePointerMove,
-                    );
-
-                    window.addEventListener(
-                        "pointerup",
-                        handlePointerUp,
-                    );
-                }}
-            />
-
-            <div
-                className="
-                    flex-1
-                    overflow-auto
-                "
+                onHeaderPointerDown={
+                    handleHeaderPointerDown
+                }
             >
                 <Component />
-            </div>
+            </PanelFrame>
 
         </div>
     );

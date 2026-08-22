@@ -20,7 +20,7 @@ import {
     executeResizeFloatingWindowCommand, executeCloseFloatingWindowCommand,
     executeBringFloatingWindowToFrontCommand, executeHideDockPreviewCommand,
     executeShowDockPreviewCommand, executeDockPanelCommand, executeUndockPanelCommand,
-    executeOpenPanelCommand,
+    executeOpenPanelCommand, executeFocusPanelCommand,
 } from "../engine";
 
 interface WorkspaceStore
@@ -120,6 +120,10 @@ interface WorkspaceStore
     ): void;
 
     hideDockPreview(): void;
+
+    focusPanel(
+        panelId: PanelId,
+    ): void;
 }
 
 export const useWorkspaceStore =
@@ -169,8 +173,8 @@ export const useWorkspaceStore =
                     );
 
                 return {
-                    layout:
-                        result.layout,
+                    layout: result.layout,
+                    activePanelId: panelId,
                 };
             }),
 
@@ -466,6 +470,16 @@ export const useWorkspaceStore =
         hideDockPreview: () =>
             set(
                 executeHideDockPreviewCommand(),
+            ),
+
+        focusPanel: (
+            panelId,
+        ) =>
+            set((state) =>
+                executeFocusPanelCommand(
+                    state,
+                    panelId,
+                ),
             ),
 
     }));

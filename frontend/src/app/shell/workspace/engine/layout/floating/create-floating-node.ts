@@ -9,6 +9,7 @@ import {
 
 export function createFloatingNode(
     panelId: PanelId,
+    zIndex: number,
 ): FloatingNode {
 
     return {
@@ -25,5 +26,8 @@ export function createFloatingNode(
 
         width: 800,
         height: 600,
+
+        zIndex,
+
     };
 }
