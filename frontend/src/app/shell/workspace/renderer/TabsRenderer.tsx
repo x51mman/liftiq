@@ -34,6 +34,18 @@ export function TabsRenderer({
                 state.undockPanel,
         );
 
+    const closePanel =
+        useWorkspaceStore(
+            state =>
+                state.closePanel,
+        );
+
+    const focusPanel =
+        useWorkspaceStore(
+            state =>
+                state.focusPanel,
+        );
+
     const ActiveComponent =
         panelDefinitions[
             node.activePanelId
@@ -83,12 +95,16 @@ export function TabsRenderer({
                             >
 
                                 <button
-                                    onClick={() =>
+                                    onClick={() => {
                                         activeTab(
                                             node.id,
                                             panelId,
-                                        )
-                                    }
+                                        );
+
+                                        focusPanel(
+                                            panelId,
+                                        );
+                                    }}
                                     className={`
                                         flex
                                         items-center
@@ -110,11 +126,15 @@ export function TabsRenderer({
                                     }
                                 </button>
 
+
+
                                 <button
+                                    onPointerDown={
+                                        event =>
+                                            event.stopPropagation()
+                                    }
                                     onClick={() =>
-                                        undockPanel(
-                                            panelId,
-                                        )
+                                        undockPanel(panelId)
                                     }
                                     className="
                                         px-2
@@ -123,8 +143,24 @@ export function TabsRenderer({
                                         hover:opacity-100
                                     "
                                     title="Undock"
+                                    aria-label="Undock panel"
                                 >
                                     ↗
+                                </button>
+
+                                <button
+                                    onPointerDown={
+                                        event =>
+                                            event.stopPropagation()
+                                    }
+                                    onClick={() =>
+                                        closePanel(panelId)
+                                    }
+                                    className="px-2 text-xs opacity-60 hover:opacity-100"
+                                    title="Close"
+                                    aria-label="Close panel"
+                                >
+                                    ×
                                 </button>
 
                             </div>

@@ -2,6 +2,10 @@ import type {
     WorkspaceLayout,
 } from "@model";
 
+import {
+    getNextFloatingZIndex,
+} from "../../floating";
+
 type Result = {
     layout: WorkspaceLayout;
 };
@@ -23,20 +27,28 @@ export function executeBringFloatingWindowToFrontCommand(
         };
     }
 
-    return {
+    const nextZIndex =
+        getNextFloatingZIndex(
+            layout.floating,
+        );
 
+    const updatedTarget = {
+        ...target,
+        zIndex: nextZIndex,
+    };
+
+    return {
         layout: {
 
             ...layout,
 
             floating: [
-
                 ...layout.floating.filter(
                     node =>
                         node.id !== nodeId,
                 ),
 
-                target,
+                updatedTarget,
             ],
         },
     };
