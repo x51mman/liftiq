@@ -11,8 +11,8 @@ import {
 } from "../store";
 
 import {
-    PanelFrame,
-} from "./PanelFrame";
+    TabsSurface,
+} from "./TabsSurface";
 
 type Props = {
     node: TabsNode;
@@ -46,6 +46,16 @@ export function TabsRenderer({
                 state.focusPanel,
         );
 
+    const activePanelId =
+        useWorkspaceStore(
+            state =>
+                state.activePanelId,
+        );
+
+    const isFocused =
+        activePanelId ===
+        node.activePanelId;
+
     const ActiveComponent =
         panelDefinitions[
             node.activePanelId
@@ -53,14 +63,13 @@ export function TabsRenderer({
 
     return (
 
-        <div
-            className="
-                flex
-                h-full
-                w-full
-                flex-col
-                overflow-hidden
-            "
+        <TabsSurface
+            panelId={
+                node.activePanelId
+            }
+            isFocused={
+                isFocused
+            }
         >
 
             <div
@@ -96,6 +105,7 @@ export function TabsRenderer({
 
                                 <button
                                     onClick={() => {
+
                                         activeTab(
                                             node.id,
                                             panelId,
@@ -119,14 +129,16 @@ export function TabsRenderer({
                                         }
                                     `}
                                 >
-                                    <Icon size={16} />
+
+                                    <Icon
+                                        size={16}
+                                    />
 
                                     {
                                         definition.title
                                     }
+
                                 </button>
-
-
 
                                 <button
                                     onPointerDown={
@@ -134,7 +146,9 @@ export function TabsRenderer({
                                             event.stopPropagation()
                                     }
                                     onClick={() =>
-                                        undockPanel(panelId)
+                                        undockPanel(
+                                            panelId,
+                                        )
                                     }
                                     className="
                                         px-2
@@ -154,9 +168,16 @@ export function TabsRenderer({
                                             event.stopPropagation()
                                     }
                                     onClick={() =>
-                                        closePanel(panelId)
+                                        closePanel(
+                                            panelId,
+                                        )
                                     }
-                                    className="px-2 text-xs opacity-60 hover:opacity-100"
+                                    className="
+                                        px-2
+                                        text-xs
+                                        opacity-60
+                                        hover:opacity-100
+                                    "
                                     title="Close"
                                     aria-label="Close panel"
                                 >
@@ -176,22 +197,16 @@ export function TabsRenderer({
                     flex-1
                     min-h-0
                 "
+                onPointerDown={() =>
+                    focusPanel(
+                        node.activePanelId,
+                    )
+                }
             >
-
-                <PanelFrame
-                    panelId={
-                        node.activePanelId
-                    }
-                    showHeader={false}
-                >
-
-                    <ActiveComponent />
-
-                </PanelFrame>
-
+                <ActiveComponent />
             </div>
 
-        </div>
+        </TabsSurface>
 
     );
 }

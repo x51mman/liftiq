@@ -4,7 +4,7 @@ import type {
 } from "@model";
 
 import {
-    findPanelContainerLocation,
+    findPanelContainerLocation, updateTabsNode,
 } from "@tree";
 
 import {
@@ -48,6 +48,32 @@ export function executeOpenPanelCommand(
         );
 
     if (location) {
+
+        if (
+            location.container.type === "tabs"
+        ) {
+
+            return {
+
+                layout: {
+
+                    ...layout,
+
+                    root:
+                        updateTabsNode(
+                            layout.root,
+                            location.container.id,
+                            node => ({
+                                ...node,
+
+                                activePanelId:
+                                    panelId,
+                            }),
+                        ),
+                },
+            };
+        }
+
         return {
             layout,
         };

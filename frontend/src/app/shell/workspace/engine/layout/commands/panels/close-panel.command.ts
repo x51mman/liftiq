@@ -7,6 +7,10 @@ import {
     removePanelFromContainer,
 } from "../../docking";
 
+import {
+    findFocusCandidate
+} from "../../../focus";
+
 type Result = Pick<
     WorkspaceState,
     "panels" |
@@ -20,10 +24,58 @@ export function executeClosePanelCommand(
 ): Result {
 
     /*
-     * 1. Panel state
+     * 1. Ellenőrizzük, hogy a panel
+     *    ténylegesen jelen van-e a layoutban.
+     */
+    const isFloating =
+        state.layout.floating.some(
+            node =>
+                node.panelId === panelId,
+        );
+
+    const isDocked =
+        !isFloating &&
+        state.panels.some(
+            panel =>
+                panel.id === panelId &&
+                panel.state !== "closed",
+        );
+
+    /*
+     * Ha a panel már nincs használatban,
+     * nincs mit bezárni.
+     */
+    if (
+        !isFloating &&
+        !isDocked
+    ) {
+        return {
+            panels:
+                state.panels,
+
+            activePanelId:
+                state.activePanelId,
+
+            layout:
+                state.layout,
+        };
+    }
+
+    /*
+     * 2. A következő focus candidate-et
+     *    MÉG A CLOSE ELŐTT keressük meg.
      *
-     * A panel továbbra is szerepel a workspace
-     * panel-regiszterében, de closed állapotba kerül.
+     *    Ez fontos, mert ekkor még rendelkezésünkre
+     *    áll a bezárandó panel teljes layout-környezete.
+     */
+    const focusCandidate =
+        findFocusCandidate(
+            state.layout,
+            panelId,
+        );
+
+    /*
+     * 3. Panel registry state
      */
     const panels =
         state.panels.map(
@@ -37,22 +89,7 @@ export function executeClosePanelCommand(
         );
 
     /*
-     * 2. Active panel
-     *
-     * A focus következő lépésben lesz kezelve.
-     * Most csak akkor töröljük az activePanelId-t,
-     * ha ténylegesen ezt a panelt zárjuk be.
-     */
-    const activePanelId =
-        state.activePanelId === panelId
-            ? null
-            : state.activePanelId;
-
-    /*
-     * 3. Floating panel eltávolítása
-     *
-     * Ha a panel floating állapotban van,
-     * egyszerűen kivesszük a floating node-ok közül.
+     * 4. Floating panel eltávolítása
      */
     const floating =
         state.layout.floating.filter(
@@ -61,25 +98,8 @@ export function executeClosePanelCommand(
         );
 
     /*
-     * 4. Docked / tab / root panel eltávolítása
-     *
-     * Ha a panel nem floatingként létezik,
-     * akkor a layout tree-ből távolítjuk el.
-     *
-     * A removePanelFromContainer() már kezeli:
-     *
-     * - panel node
-     * - tabs node
-     * - split node
-     * - tabs collapse
-     * - split collapse
+     * 5. Docked panel eltávolítása
      */
-    const isFloating =
-        state.layout.floating.some(
-            node =>
-                node.panelId === panelId,
-        );
-
     const root =
         isFloating
             ? state.layout.root
@@ -88,12 +108,28 @@ export function executeClosePanelCommand(
                 panelId,
             );
 
+    /*
+     * 6. Focus
+     *
+     * Ha a bezárt panel volt aktív,
+     * a candidate kapja meg a fókuszt.
+     *
+     * Ha nem ő volt aktív, az aktuális
+     * focus változatlan marad.
+     */
+    const activePanelId =
+        state.activePanelId === panelId
+            ? focusCandidate
+            : state.activePanelId;
+
     return {
+
         panels,
 
         activePanelId,
 
         layout: {
+            ...state.layout,
             root,
             floating,
         },

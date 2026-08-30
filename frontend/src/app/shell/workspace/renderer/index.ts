@@ -11,3 +11,4 @@ export * from "./PanelSurface";
 export * from "./calculate-dock-preview-rect";
 export * from "./PanelFrame";
 export * from "./PanelHeader";
+export * from "./TabsSurface";

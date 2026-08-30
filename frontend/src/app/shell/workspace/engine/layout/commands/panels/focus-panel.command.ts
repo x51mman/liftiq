@@ -3,22 +3,41 @@ import type {
     WorkspaceState,
 } from "@model";
 
+import {
+    findPanelContainerLocation,
+} from "@tree";
+
+type Result = Pick<
+    WorkspaceState,
+    "activePanelId"
+>;
+
 export function executeFocusPanelCommand(
     state: WorkspaceState,
     panelId: PanelId,
-): Pick<
-    WorkspaceState,
-    "activePanelId"
-> {
+): Result {
 
-    const panelExists =
-        state.panels.some(
-            panel =>
-                panel.id === panelId &&
-                panel.state !== "closed",
+    /*
+     * A panel akkor fókuszálható,
+     * ha ténylegesen jelen van a workspace layoutban.
+     */
+
+    const isDocked =
+        findPanelContainerLocation(
+            state.layout.root,
+            panelId,
+        ) !== null;
+
+    const isFloating =
+        state.layout.floating.some(
+            node =>
+                node.panelId === panelId,
         );
 
-    if (!panelExists) {
+    if (
+        !isDocked &&
+        !isFloating
+    ) {
         return {
             activePanelId:
                 state.activePanelId,
