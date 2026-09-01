@@ -1,5 +1,8 @@
 import type { RefObject } from "react";
-import { calculateResizeDelta } from "./calculate-resize-delta";
+
+import {
+    calculateResizeDelta,
+} from "./calculate-resize-delta";
 
 type Direction =
     | "horizontal"
@@ -7,29 +10,39 @@ type Direction =
 
 type ResizeSessionOptions = {
     direction: Direction;
+
     containerRef:
     RefObject<HTMLDivElement | null>;
+
     onResize: (
         deltaPercent: number,
+        containerSize: number,
     ) => void;
 };
 
 export class ResizeSession {
-    private direction: Direction;
+
+    private direction:
+        Direction;
 
     private containerRef:
         RefObject<HTMLDivElement | null>;
 
     private onResize:
-        (deltaPercent: number) => void;
+        (deltaPercent: number,
+            containerSize: number,
+        ) => void;
 
-    private dragging = false;
+    private dragging =
+        false;
 
-    private lastPosition = 0;
+    private lastPosition =
+        0;
 
     constructor(
         options: ResizeSessionOptions,
     ) {
+
         this.direction =
             options.direction;
 
@@ -50,12 +63,16 @@ export class ResizeSession {
             );
     }
 
-    start(event: React.PointerEvent) {
+    start(
+        event: React.PointerEvent,
+    ) {
+
         if (this.dragging) {
             return;
         }
 
-        this.dragging = true;
+        this.dragging =
+            true;
 
         this.lastPosition =
             this.direction ===
@@ -75,6 +92,7 @@ export class ResizeSession {
     }
 
     destroy() {
+
         window.removeEventListener(
             "pointermove",
             this.handlePointerMove,
@@ -84,11 +102,15 @@ export class ResizeSession {
             "pointerup",
             this.handlePointerUp,
         );
+
+        this.dragging =
+            false;
     }
 
     private handlePointerMove(
         event: PointerEvent,
     ) {
+
         if (!this.dragging) {
             return;
         }
@@ -119,23 +141,30 @@ export class ResizeSession {
                 ? container.clientWidth
                 : container.clientHeight;
 
-        if (!size) {
+        if (size <= 0) {
             return;
         }
 
         const deltaPercent =
             calculateResizeDelta({
-                pointerDeltaPx: diff,
-                containerSizePx: size,
+                pointerDeltaPx:
+                    diff,
+
+                containerSizePx:
+                    size,
             });
 
         this.onResize(
             deltaPercent,
+            size,
         );
     }
 
     private handlePointerUp() {
-        this.dragging = false;
+
+        this.dragging =
+            false;
+
         this.destroy();
     }
 }

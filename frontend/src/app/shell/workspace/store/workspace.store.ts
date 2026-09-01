@@ -83,11 +83,12 @@ interface WorkspaceStore
         nodeId: string,
     ): void;
 
-    resizeSplit(
+    resizeSplit: (
         splitId: string,
         index: number,
         delta: number,
-    ): void;
+        containerSize: number,
+    ) => void;
 
     splitPanel(
         targetPanelId: PanelId,
@@ -328,6 +329,7 @@ export const useWorkspaceStore =
                 splitId,
                 index,
                 delta,
+                containerSize,
             ) =>
                 set((state) => {
 
@@ -336,17 +338,21 @@ export const useWorkspaceStore =
                     }
 
                     return {
+
                         layout: {
+
                             ...state.layout,
-                            root: resizeSplitCommand(
-                                state.layout.root,
-                                splitId,
-                                index,
-                                delta,
-                            ),
+
+                            root:
+                                resizeSplitCommand(
+                                    state.layout.root,
+                                    splitId,
+                                    index,
+                                    delta,
+                                    containerSize,
+                                ),
                         },
                     };
-
                 }),
 
         splitPanel: (

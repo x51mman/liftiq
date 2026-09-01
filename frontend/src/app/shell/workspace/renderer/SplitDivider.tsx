@@ -16,10 +16,17 @@ import {
 } from "../engine";
 
 type SplitDividerProps = {
+
     splitId: string;
-    direction: "horizontal" | "vertical";
+
+    direction:
+    "horizontal"
+    | "vertical";
+
     index: number;
+
     position: number;
+
     containerRef:
     RefObject<HTMLDivElement | null>;
 };
@@ -31,12 +38,10 @@ export function SplitDivider({
     position,
     containerRef,
 }: SplitDividerProps) {
-    const isHorizontal =
-        direction === "horizontal";
 
     const resizeSplit =
         useWorkspaceStore(
-            (state) =>
+            state =>
                 state.resizeSplit,
         );
 
@@ -44,18 +49,23 @@ export function SplitDivider({
         useMemo(
             () =>
                 new ResizeSession({
+
                     direction,
+
                     containerRef,
-                    onResize:
-                        (
+
+                    onResize: (
+                        deltaPercent,
+                        containerSize,
+                    ) =>
+                        resizeSplit(
+                            splitId,
+                            index,
                             deltaPercent,
-                        ) =>
-                            resizeSplit(
-                                splitId,
-                                index,
-                                deltaPercent,
-                            ),
+                            containerSize,
+                        ),
                 }),
+
             [
                 direction,
                 containerRef,
@@ -66,16 +76,26 @@ export function SplitDivider({
         );
 
     useEffect(() => {
+
         return () =>
             session.destroy();
-    }, [session]);
+
+    }, [
+        session,
+    ]);
+
+    const isHorizontal =
+        direction ===
+        "horizontal";
 
     return (
+
         <div
-            onPointerDown={(event) =>
-                session.start(
-                    event,
-                )
+            onPointerDown={
+                event =>
+                    session.start(
+                        event,
+                    )
             }
             className={
                 isHorizontal
@@ -114,5 +134,6 @@ export function SplitDivider({
                     }
             }
         />
+
     );
 }

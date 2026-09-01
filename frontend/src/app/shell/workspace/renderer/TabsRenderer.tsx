@@ -14,6 +14,8 @@ import {
     TabsSurface,
 } from "./TabsSurface";
 
+import { TabHeaderItem } from "./TabHeaderItem";
+
 type Props = {
     node: TabsNode;
 };
@@ -56,10 +58,17 @@ export function TabsRenderer({
         activePanelId ===
         node.activePanelId;
 
-    const ActiveComponent =
+    const definition =
         panelDefinitions[
-            node.activePanelId
-        ].component;
+        node.activePanelId
+        ];
+
+    if (!definition) {
+        return null;
+    }
+
+    const ActiveComponent =
+        definition.component;
 
     return (
 
@@ -95,13 +104,11 @@ export function TabsRenderer({
 
                         return (
 
-                            <div
+                            <TabHeaderItem
                                 key={panelId}
-                                className="
-                                    flex
-                                    items-center
-                                "
+                                panelId={panelId}
                             >
+
 
                                 <button
                                     onClick={() => {
@@ -184,13 +191,13 @@ export function TabsRenderer({
                                     ×
                                 </button>
 
-                            </div>
+                            </TabHeaderItem>
 
                         );
                     },
                 )}
 
-            </div>
+            </div >
 
             <div
                 className="
@@ -206,7 +213,7 @@ export function TabsRenderer({
                 <ActiveComponent />
             </div>
 
-        </TabsSurface>
+        </TabsSurface >
 
     );
 }

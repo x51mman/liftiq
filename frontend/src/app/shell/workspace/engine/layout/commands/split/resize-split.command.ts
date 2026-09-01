@@ -7,52 +7,72 @@ import {
 } from "@tree";
 
 import {
-    normalizeSizes, applyResizeConstraints
-} from "../../resize";
+    calculateLayoutMinSize,
+} from "@/app/shell/workspace/renderer";
+
+import {
+    resizeSplitChildren,
+} from "../../resize/resize-split-children";
 
 export function resizeSplitCommand(
     layout: LayoutNode,
     splitId: string,
     index: number,
     delta: number,
+    containerSize: number,
 ): LayoutNode {
 
     return updateSplitSizes(
         layout,
         splitId,
-        (split) => {
-
-            const sizes = [...split.sizes];
-
-            const left = sizes[index];
-            const right = sizes[index + 1];
+        split => {
 
             if (
-                left === undefined ||
-                right === undefined
+                containerSize <= 0
             ) {
                 return split;
             }
 
-            const resized =
-                applyResizeConstraints(
-                    left,
-                    right,
-                    delta,
+            if (
+                index < 0 ||
+                index >=
+                split.children.length - 1
+            ) {
+                return split;
+            }
+
+            const minSizes =
+                split.children.map(
+                    child =>
+                        split.direction ===
+                            "horizontal"
+                            ? calculateLayoutMinSize(
+                                child,
+                            ).width
+                            : calculateLayoutMinSize(
+                                child,
+                            ).height,
                 );
 
-            sizes[index] =
-                resized.leftSize;
+            const result =
+                resizeSplitChildren({
+                    sizes:
+                        split.sizes,
 
-            sizes[index + 1] =
-                resized.rightSize;
+                    minSizes,
+
+                    index,
+
+                    delta,
+
+                    containerSize,
+                });
 
             return {
                 ...split,
+
                 sizes:
-                    normalizeSizes(
-                        sizes,
-                    ),
+                    result.sizes,
             };
         },
     );

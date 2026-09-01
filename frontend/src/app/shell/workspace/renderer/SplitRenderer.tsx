@@ -82,18 +82,31 @@ export function SplitRenderer({
 
             {dividerPositions.map(
                 (position, index) => (
+
                     <SplitDivider
                         key={index}
-                        splitId={node.id}
+
+                        splitId={
+                            node.id
+                        }
+
                         direction={
                             node.direction
                         }
-                        index={index}
-                        position={position}
+
+                        index={
+                            index
+                        }
+
+                        position={
+                            position
+                        }
+
                         containerRef={
                             containerRef
                         }
                     />
+
                 ),
             )}
         </div>

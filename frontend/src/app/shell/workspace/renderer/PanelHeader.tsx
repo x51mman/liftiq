@@ -6,6 +6,16 @@ import type {
     PanelId,
 } from "../model";
 
+import {
+    useEffect,
+    useRef,
+} from "react";
+
+import {
+    registerPanelHeaderElement,
+    unregisterPanelHeaderElement,
+} from "./panel-header-dom-registry";
+
 type Props = {
 
     panelId: PanelId;
@@ -42,9 +52,41 @@ export function PanelHeader({
     const Icon =
         definition.icon;
 
+    const headerRef =
+        useRef<HTMLDivElement>(
+            null,
+        );
+
+    useEffect(() => {
+
+        const element =
+            headerRef.current;
+
+        if (!element) {
+            return;
+        }
+
+        registerPanelHeaderElement(
+            panelId,
+            element,
+        );
+
+        return () => {
+
+            unregisterPanelHeaderElement(
+                panelId,
+                element,
+            );
+        };
+
+    }, [
+        panelId,
+    ]);
+
     return (
 
         <div
+            ref={headerRef}
             onPointerDown={
                 onPointerDown
             }
