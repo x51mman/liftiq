@@ -19,52 +19,168 @@ export function resizeSplitChildren({
     containerSize,
 }: ResizeChildrenOptions): ResizeChildrenResult {
 
-    const nextSizes =
-        sizes.map(
-            size =>
-                (
-                    size / 100
-                ) * containerSize,
-        );
+    const count =
+        sizes.length;
 
     if (
+        count < 2 ||
         index < 0 ||
-        index >=
-        nextSizes.length - 1
+        index >= count - 1 ||
+        containerSize <= 0
     ) {
         return {
-            sizes,
+            sizes: [...sizes],
             appliedDelta: 0,
         };
     }
 
     /*
-     * A divider mozgatása mindig
-     * a két oldal közötti helyet
-     * osztja újra.
+     * A layout méretei százalékban vannak,
+     * a minimumok viszont pixelben.
      *
-     * delta < 0:
-     *
-     * bal oldal zsugorodik,
-     * jobb oldal nő.
-     *
-     * delta > 0:
-     *
-     * jobb oldal zsugorodik,
-     * bal oldal nő.
+     * Ezért a resize számítást pixelben
+     * végezzük.
      */
+    const pixelSizes =
+        sizes.map(
+            size =>
+                Math.max(0, size) /
+                100 *
+                containerSize,
+        );
 
-    if (delta < 0) {
+    const minimums =
+        minSizes.map(
+            size =>
+                Math.max(0, size),
+        );
+
+    /*
+     * Ha a minimumtömb rövidebb lenne,
+     * a hiányzó elemek minimuma 0.
+     */
+    while (
+        minimums.length < count
+    ) {
+        minimums.push(0);
+    }
+
+    const requestedDeltaPx =
+        (
+            delta /
+            100
+        ) *
+        containerSize;
+
+    if (
+        requestedDeltaPx === 0
+    ) {
+        return {
+            sizes: [...sizes],
+            appliedDelta: 0,
+        };
+    }
+
+    /*
+     * Megszámoljuk, hogy a divider két
+     * oldalán összesen mennyi hely
+     * szabadítható fel a minimumok felett.
+     *
+     * Bal oldal:
+     *   children 0 ... index
+     *
+     * Jobb oldal:
+     *   children index + 1 ... count - 1
+     */
+    let leftAvailablePx = 0;
+
+    for (
+        let i = 0;
+        i <= index;
+        i++
+    ) {
+        const current =
+            pixelSizes[i] ?? 0;
+
+        const minimum =
+            minimums[i] ?? 0;
+
+        leftAvailablePx +=
+            Math.max(
+                0,
+                current - minimum,
+            );
+    }
+
+    let rightAvailablePx = 0;
+
+    for (
+        let i = index + 1;
+        i < count;
+        i++
+    ) {
+        const current =
+            pixelSizes[i] ?? 0;
+
+        const minimum =
+            minimums[i] ?? 0;
+
+        rightAvailablePx +=
+            Math.max(
+                0,
+                current - minimum,
+            );
+    }
+
+    /*
+     * A ténylegesen alkalmazható delta
+     * nem lépheti túl annak az oldalnak
+     * a teljes kapacitását, amelyiknek
+     * zsugorodnia kell.
+     */
+    let appliedDeltaPx =
+        requestedDeltaPx;
+
+    if (
+        requestedDeltaPx < 0
+    ) {
+        appliedDeltaPx =
+            -Math.min(
+                -requestedDeltaPx,
+                leftAvailablePx,
+            );
+    } else {
+        appliedDeltaPx =
+            Math.min(
+                requestedDeltaPx,
+                rightAvailablePx,
+            );
+    }
+
+    if (
+        appliedDeltaPx === 0
+    ) {
+        return {
+            sizes: [...sizes],
+            appliedDelta: 0,
+        };
+    }
+
+    /*
+     * Divider balra mozog:
+     *
+     *   bal oldal  -> zsugorodik
+     *   jobb oldal -> ugyanennyivel nő
+     *
+     * A bal oldali zsugorítást a dividerhez
+     * legközelebbi gyermektől kifelé végezzük.
+     */
+    if (
+        appliedDeltaPx < 0
+    ) {
 
         let remaining =
-            -delta;
-
-        /*
-         * Bal oldal:
-         *
-         * a dividerhez legközelebbi
-         * childtól kifelé zsugorítunk.
-         */
+            -appliedDeltaPx;
 
         for (
             let i = index;
@@ -74,10 +190,10 @@ export function resizeSplitChildren({
         ) {
 
             const current =
-                nextSizes[i] ?? 0;
+                pixelSizes[i] ?? 0;
 
             const minimum =
-                minSizes[i] ?? 0;
+                minimums[i] ?? 0;
 
             const available =
                 Math.max(
@@ -91,7 +207,7 @@ export function resizeSplitChildren({
                     remaining,
                 );
 
-            nextSizes[i] =
+            pixelSizes[i] =
                 current -
                 reduction;
 
@@ -99,104 +215,140 @@ export function resizeSplitChildren({
                 reduction;
         }
 
-        const appliedDelta =
-            -(
-                -delta -
-                remaining
-            );
+
+
+
+
+
 
         /*
-         * A jobb oldal teljes
-         * rendelkezésre álló mérete
-         * ennyivel nő.
+         * A felszabadított helyet a divider
+         * jobb oldalán lévő első gyermek kapja.
          *
-         * A legközelebbi jobb child
-         * kapja meg a növekedést.
+         * Ez tartja meg az összes gyermek
+         * teljes méretét.
          */
-
-        nextSizes[index + 1] =
+        pixelSizes[index + 1] =
             (
-                nextSizes[index + 1] ?? 0
+                pixelSizes[index + 1] ?? 0
             ) -
-            appliedDelta;
-
-        return {
-            sizes:
-                nextSizes.map(
-                    size =>
-                        (
-                            size /
-                            containerSize
-                        ) * 100,
-                ),
-
-            appliedDelta,
-        };
+            appliedDeltaPx;
     }
 
     /*
-     * delta > 0
+     * Divider jobbra mozog:
      *
-     * Jobb oldal zsugorodik,
-     * bal oldal nő.
+     *   jobb oldal -> zsugorodik
+     *   bal oldal  -> ugyanennyivel nő
+     *
+     * A jobb oldali zsugorítást a dividerhez
+     * legközelebbi gyermektől kifelé végezzük.
      */
+    else {
 
-    let remaining =
-        delta;
 
-    for (
-        let i = index + 1;
-        i < nextSizes.length &&
-        remaining > 0;
-        i++
-    ) {
+        let remaining =
+            appliedDeltaPx;
 
-        const current =
-            nextSizes[i] ?? 0;
+        for (
+            let i = index + 1;
+            i < count &&
+            remaining > 0;
+            i++
+        ) {
 
-        const minimum =
-            minSizes[i] ?? 0;
+            const current =
+                pixelSizes[i] ?? 0;
 
-        const available =
-            Math.max(
-                0,
-                current - minimum,
-            );
+            const minimum =
+                minimums[i] ?? 0;
 
-        const reduction =
-            Math.min(
-                available,
-                remaining,
-            );
+            const available =
+                Math.max(
+                    0,
+                    current - minimum,
+                );
 
-        nextSizes[i] =
-            current -
-            reduction;
+            const reduction =
+                Math.min(
+                    available,
+                    remaining,
+                );
 
-        remaining -=
-            reduction;
+            pixelSizes[i] =
+                current -
+                reduction;
+
+            remaining -=
+                reduction;
+        }
+
+
+
+
+
+        /*
+         * A felszabadított helyet a divider
+         * bal oldalán lévő első gyermek kapja.
+         */
+        pixelSizes[index] =
+            (
+                pixelSizes[index] ?? 0
+            ) +
+            appliedDeltaPx;
     }
 
-    const appliedDelta =
-        delta -
-        remaining;
+    /*
+     * Visszaalakítás százalékra.
+     */
+    const nextSizes =
+        pixelSizes.map(
+            size =>
+                (
+                    size /
+                    containerSize
+                ) *
+                100,
+        );
 
-    nextSizes[index] =
-        (
-            nextSizes[index] ?? 0
-        ) +
-        appliedDelta;
+    /*
+     * Lebegőpontos eltérés korrekciója.
+     *
+     * A százalékok összege mindig pontosan
+     * 100 legyen.
+     */
+    const total =
+        nextSizes.reduce(
+            (
+                sum,
+                size,
+            ) =>
+                sum + size,
+            0,
+        );
+
+    const correction =
+        100 - total;
+
+    if (
+        nextSizes.length > 0 &&
+        Math.abs(correction) >
+        1e-10
+    ) {
+        nextSizes[
+            nextSizes.length - 1
+        ] += correction;
+    }
 
     return {
         sizes:
-            nextSizes.map(
-                size =>
-                    (
-                        size /
-                        containerSize
-                    ) * 100,
-            ),
+            nextSizes,
 
-        appliedDelta,
+        appliedDelta:
+            (
+                appliedDeltaPx /
+                containerSize
+            ) *
+            100,
     };
 }

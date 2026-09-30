@@ -3,15 +3,12 @@ import type {
 } from "../model";
 
 const panelHeaderElements =
-    new Map<
-        PanelId,
-        HTMLElement
-    >();
+    new Map<PanelId, HTMLElement>();
 
 export function registerPanelHeaderElement(
     panelId: PanelId,
     element: HTMLElement,
-) {
+): void {
     panelHeaderElements.set(
         panelId,
         element,
@@ -20,35 +17,15 @@ export function registerPanelHeaderElement(
 
 export function unregisterPanelHeaderElement(
     panelId: PanelId,
-    element?: HTMLElement,
-) {
-    const current =
-        panelHeaderElements.get(
-            panelId,
-        );
-
-    if (
-        !current ||
-        (
-            element &&
-            current !== element
-        )
-    ) {
-        return;
-    }
-
-    panelHeaderElements.delete(
-        panelId,
-    );
+): void {
+    panelHeaderElements.delete(panelId);
 }
 
 export function getPanelHeaderElement(
     panelId: PanelId,
 ): HTMLElement | null {
-
     return (
-        panelHeaderElements.get(
-            panelId,
-        ) ?? null
+        panelHeaderElements.get(panelId)
+        ?? null
     );
 }

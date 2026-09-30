@@ -20,7 +20,7 @@ type SplitDividerProps = {
     splitId: string;
 
     direction:
-    "horizontal"
+    | "horizontal"
     | "vertical";
 
     index: number;
@@ -29,6 +29,8 @@ type SplitDividerProps = {
 
     containerRef:
     RefObject<HTMLDivElement | null>;
+
+    minSizes: number[];
 };
 
 export function SplitDivider({
@@ -37,6 +39,7 @@ export function SplitDivider({
     index,
     position,
     containerRef,
+    minSizes,
 }: SplitDividerProps) {
 
     const resizeSplit =
@@ -57,12 +60,14 @@ export function SplitDivider({
                     onResize: (
                         deltaPercent,
                         containerSize,
+                        snapshotMinSizes,
                     ) =>
                         resizeSplit(
                             splitId,
                             index,
                             deltaPercent,
                             containerSize,
+                            snapshotMinSizes,
                         ),
                 }),
 
@@ -95,6 +100,7 @@ export function SplitDivider({
                 event =>
                     session.start(
                         event,
+                        minSizes,
                     )
             }
             className={
@@ -105,10 +111,16 @@ export function SplitDivider({
                         h-full
                         w-1
                         -translate-x-1/2
+
                         cursor-col-resize
+
                         bg-cyan-500/40
                         hover:bg-cyan-400
+
                         z-50
+
+                        select-none
+                        touch-none
                     `
                     : `
                         absolute
@@ -116,10 +128,16 @@ export function SplitDivider({
                         w-full
                         h-1
                         -translate-y-1/2
+
                         cursor-row-resize
+
                         bg-cyan-500/40
                         hover:bg-cyan-400
+
                         z-50
+
+                        select-none
+                        touch-none
                     `
             }
             style={

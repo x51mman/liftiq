@@ -45,8 +45,8 @@ export function TabHeaderItem({
 
             unregisterPanelHeaderElement(
                 panelId,
-                element,
             );
+
         };
 
     }, [
@@ -58,7 +58,9 @@ export function TabHeaderItem({
             ref={ref}
             className="
                 flex
+                shrink-0
                 items-center
+                whitespace-nowrap
             "
         >
             {children}

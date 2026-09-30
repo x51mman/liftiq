@@ -13,5 +13,5 @@ export * from "./PanelFrame";
 export * from "./PanelHeader";
 export * from "./TabsSurface";
 export * from "./panel-header-dom-registry";
-export * from "./layout-min-size";
+export * from "./calculate-layout-min-size";
 export * from "./TabHeaderItem";

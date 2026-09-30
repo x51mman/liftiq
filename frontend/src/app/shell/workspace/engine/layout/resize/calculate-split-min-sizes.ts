@@ -4,7 +4,7 @@ import type {
 
 import {
     calculateLayoutMinSize,
-} from "../../../renderer/layout-min-size";
+} from "../../../renderer/calculate-layout-min-size";
 
 export type SplitChildMinSize = {
     width: number;

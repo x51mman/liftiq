@@ -1,15 +1,15 @@
 import {
+    useEffect,
+    useRef,
+} from "react";
+
+import {
     panelDefinitions,
 } from "../registry";
 
 import type {
     PanelId,
 } from "../model";
-
-import {
-    useEffect,
-    useRef,
-} from "react";
 
 import {
     registerPanelHeaderElement,
@@ -40,18 +40,6 @@ export function PanelHeader({
     onPointerDown,
 }: Props) {
 
-    const definition =
-        panelDefinitions[
-        panelId
-        ];
-
-    if (!definition) {
-        return null;
-    }
-
-    const Icon =
-        definition.icon;
-
     const headerRef =
         useRef<HTMLDivElement>(
             null,
@@ -75,13 +63,24 @@ export function PanelHeader({
 
             unregisterPanelHeaderElement(
                 panelId,
-                element,
             );
         };
 
     }, [
         panelId,
     ]);
+
+    const definition =
+        panelDefinitions[
+        panelId
+        ];
+
+    if (!definition) {
+        return null;
+    }
+
+    const Icon =
+        definition.icon;
 
     return (
 
@@ -109,14 +108,14 @@ export function PanelHeader({
 
                 ${isFocused
                     ? `
-                            border-cyan-400/60
-                            bg-cyan-500/10
-                            shadow-[inset_0_-1px_0_rgba(34,211,238,0.35)]
-                        `
+                        border-cyan-400/60
+                        bg-cyan-500/10
+                        shadow-[inset_0_-1px_0_rgba(34,211,238,0.35)]
+                    `
                     : `
-                            border-cyan-500/20
-                            bg-background
-                        `
+                        border-cyan-500/20
+                        bg-background
+                    `
                 }
             `}
         >
@@ -124,6 +123,7 @@ export function PanelHeader({
             <div
                 className="
                     flex
+                    shrink-0
                     items-center
                     gap-2
                 "
@@ -135,6 +135,8 @@ export function PanelHeader({
 
                 <span
                     className="
+                        shrink-0
+                        whitespace-nowrap
                         text-sm
                     "
                 >
@@ -148,6 +150,7 @@ export function PanelHeader({
             <div
                 className="
                     flex
+                    shrink-0
                     items-center
                     gap-2
                 "
@@ -165,6 +168,7 @@ export function PanelHeader({
                             onUndock
                         }
                         className="
+                            shrink-0
                             rounded
                             px-2
                             text-sm
@@ -192,6 +196,7 @@ export function PanelHeader({
                             onClose
                         }
                         className="
+                            shrink-0
                             rounded
                             px-2
                             text-sm

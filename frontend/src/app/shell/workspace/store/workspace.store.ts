@@ -88,6 +88,7 @@ interface WorkspaceStore
         index: number,
         delta: number,
         containerSize: number,
+        minSizes: number[],
     ) => void;
 
     splitPanel(
@@ -330,6 +331,7 @@ export const useWorkspaceStore =
                 index,
                 delta,
                 containerSize,
+                minSizes,
             ) =>
                 set((state) => {
 
@@ -338,9 +340,7 @@ export const useWorkspaceStore =
                     }
 
                     return {
-
                         layout: {
-
                             ...state.layout,
 
                             root:
@@ -350,6 +350,7 @@ export const useWorkspaceStore =
                                     index,
                                     delta,
                                     containerSize,
+                                    minSizes,
                                 ),
                         },
                     };

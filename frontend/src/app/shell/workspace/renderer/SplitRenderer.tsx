@@ -4,13 +4,21 @@ import type {
     SplitNode,
 } from "../model/panel-layout.types";
 
-import { LayoutRenderer }
-    from "./LayoutRenderer";
+import {
+    LayoutRenderer,
+} from "./LayoutRenderer";
 
-import { SplitDivider }
-    from "./SplitDivider";
+import {
+    SplitDivider,
+} from "./SplitDivider";
 
-import { getDividerPositions } from "../engine";
+import {
+    getDividerPositions,
+} from "../engine";
+
+import {
+    calculateLayoutMinSize,
+} from "./calculate-layout-min-size";
 
 type Props = {
     node: SplitNode;
@@ -19,11 +27,55 @@ type Props = {
 export function SplitRenderer({
     node,
 }: Props) {
+
     const isHorizontal =
-        node.direction === "horizontal";
+        node.direction ===
+        "horizontal";
 
     const containerRef =
-        useRef<HTMLDivElement>(null);
+        useRef<HTMLDivElement>(
+            null,
+        );
+
+    /*
+     * Calculate the minimum size of
+     * every complete child LayoutNode.
+     *
+     * This recursively includes:
+     *
+     * PanelNode
+     * TabsNode
+     * SplitNode
+     *
+     * and therefore represents the
+     * actual minimum size of the
+     * complete child subtree.
+     */
+    const childMinSizes =
+        node.children.map(
+            child =>
+                calculateLayoutMinSize(
+                    child,
+                ),
+        );
+
+    /*
+     * A horizontal split is constrained
+     * by child widths.
+     *
+     * A vertical split is constrained
+     * by child heights.
+     */
+    const minSizes =
+        isHorizontal
+            ? childMinSizes.map(
+                size =>
+                    size.width,
+            )
+            : childMinSizes.map(
+                size =>
+                    size.height,
+            );
 
     const dividerPositions =
         getDividerPositions(
@@ -31,6 +83,7 @@ export function SplitRenderer({
         );
 
     return (
+
         <div
             ref={containerRef}
             className={`
@@ -38,17 +91,27 @@ export function SplitRenderer({
                 flex
                 h-full
                 w-full
+
                 ${isHorizontal
                     ? "flex-row"
-                    : "flex-col"}
+                    : "flex-col"
+                }
             `}
         >
+
             {node.children.map(
-                (child, index) => {
+                (
+                    child,
+                    index,
+                ) => {
+
                     const size =
-                        node.sizes[index] ?? 0;
+                        node.sizes[
+                        index
+                        ] ?? 0;
 
                     return (
+
                         <div
                             key={child.id}
                             className="
@@ -72,16 +135,22 @@ export function SplitRenderer({
                                     }
                             }
                         >
+
                             <LayoutRenderer
                                 node={child}
                             />
+
                         </div>
+
                     );
                 },
             )}
 
             {dividerPositions.map(
-                (position, index) => (
+                (
+                    position,
+                    index,
+                ) => (
 
                     <SplitDivider
                         key={index}
@@ -105,10 +174,16 @@ export function SplitRenderer({
                         containerRef={
                             containerRef
                         }
+
+                        minSizes={
+                            minSizes
+                        }
                     />
 
                 ),
             )}
+
         </div>
+
     );
 }

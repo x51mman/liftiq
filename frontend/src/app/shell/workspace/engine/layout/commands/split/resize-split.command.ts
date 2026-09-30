@@ -7,10 +7,6 @@ import {
 } from "@tree";
 
 import {
-    calculateLayoutMinSize,
-} from "@/app/shell/workspace/renderer";
-
-import {
     resizeSplitChildren,
 } from "../../resize/resize-split-children";
 
@@ -20,6 +16,7 @@ export function resizeSplitCommand(
     index: number,
     delta: number,
     containerSize: number,
+    minSizes: number[],
 ): LayoutNode {
 
     return updateSplitSizes(
@@ -41,19 +38,6 @@ export function resizeSplitCommand(
                 return split;
             }
 
-            const minSizes =
-                split.children.map(
-                    child =>
-                        split.direction ===
-                            "horizontal"
-                            ? calculateLayoutMinSize(
-                                child,
-                            ).width
-                            : calculateLayoutMinSize(
-                                child,
-                            ).height,
-                );
-
             const result =
                 resizeSplitChildren({
                     sizes:
@@ -70,7 +54,6 @@ export function resizeSplitCommand(
 
             return {
                 ...split,
-
                 sizes:
                     result.sizes,
             };
