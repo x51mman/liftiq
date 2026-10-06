@@ -15,7 +15,16 @@ import {
     ResizeSession,
 } from "../engine";
 
+import {
+    createResizeSnapshot,
+} from "../engine/layout/resize/resize-snapshot";
+
+import type {
+    SplitNode,
+} from "../model/panel-layout.types";
+
 type SplitDividerProps = {
+    node: SplitNode;
 
     splitId: string;
 
@@ -28,18 +37,18 @@ type SplitDividerProps = {
     position: number;
 
     containerRef:
-    RefObject<HTMLDivElement | null>;
-
-    minSizes: number[];
+    RefObject<
+        HTMLDivElement | null
+    >;
 };
 
 export function SplitDivider({
+    node,
     splitId,
     direction,
     index,
     position,
     containerRef,
-    minSizes,
 }: SplitDividerProps) {
 
     const resizeSplit =
@@ -52,22 +61,20 @@ export function SplitDivider({
         useMemo(
             () =>
                 new ResizeSession({
-
                     direction,
-
                     containerRef,
 
                     onResize: (
                         deltaPercent,
                         containerSize,
-                        snapshotMinSizes,
+                        snapshot,
                     ) =>
                         resizeSplit(
                             splitId,
                             index,
                             deltaPercent,
                             containerSize,
-                            snapshotMinSizes,
+                            snapshot,
                         ),
                 }),
 
@@ -81,28 +88,46 @@ export function SplitDivider({
         );
 
     useEffect(() => {
-
         return () =>
             session.destroy();
-
-    }, [
-        session,
-    ]);
+    }, [session]);
 
     const isHorizontal =
         direction ===
         "horizontal";
 
-    return (
+    const handlePointerDown =
+        (
+            event:
+                React.PointerEvent<
+                    HTMLDivElement
+                >,
+        ) => {
 
+            /*
+             * IMPORTANT:
+             *
+             * DOM-dependent minimum sizes
+             * are measured exactly once,
+             * when the resize starts.
+             */
+            const snapshot =
+                createResizeSnapshot(
+                    node,
+                );
+
+            session.start(
+                event,
+                snapshot,
+            );
+        };
+
+    return (
         <div
             onPointerDown={
-                event =>
-                    session.start(
-                        event,
-                        minSizes,
-                    )
+                handlePointerDown
             }
+
             className={
                 isHorizontal
                     ? `
@@ -111,14 +136,10 @@ export function SplitDivider({
                         h-full
                         w-1
                         -translate-x-1/2
-
                         cursor-col-resize
-
                         bg-cyan-500/40
                         hover:bg-cyan-400
-
                         z-50
-
                         select-none
                         touch-none
                     `
@@ -128,18 +149,15 @@ export function SplitDivider({
                         w-full
                         h-1
                         -translate-y-1/2
-
                         cursor-row-resize
-
                         bg-cyan-500/40
                         hover:bg-cyan-400
-
                         z-50
-
                         select-none
                         touch-none
                     `
             }
+
             style={
                 isHorizontal
                     ? {
@@ -152,6 +170,5 @@ export function SplitDivider({
                     }
             }
         />
-
     );
 }

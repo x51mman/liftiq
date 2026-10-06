@@ -6,6 +6,10 @@ import {
     calculateResizeDelta,
 } from "./calculate-resize-delta";
 
+import type {
+    ResizeSnapshot,
+} from "./resize-snapshot";
+
 type Direction =
     | "horizontal"
     | "vertical";
@@ -22,7 +26,7 @@ type ResizeSessionOptions = {
     onResize: (
         deltaPercent: number,
         containerSize: number,
-        minSizes: number[],
+        snapshot: ResizeSnapshot,
     ) => void;
 };
 
@@ -40,20 +44,20 @@ export class ResizeSession {
         (
             deltaPercent: number,
             containerSize: number,
-            minSizes: number[],
+            snapshot: ResizeSnapshot,
         ) => void;
 
     /*
-     * Snapshot of the minimum sizes
-     * taken when the resize starts.
+     * Everything needed during the drag
+     * is captured at pointerdown.
+     *
+     * No DOM measurement is performed
+     * during pointermove.
      */
-    private minSizes:
-        number[] = [];
+    private snapshot:
+        ResizeSnapshot | null =
+        null;
 
-    /*
-     * Snapshot of the container size
-     * taken when the resize starts.
-     */
     private containerSize =
         0;
 
@@ -90,10 +94,12 @@ export class ResizeSession {
 
     start(
         event: React.PointerEvent,
-        minSizes: number[],
+        snapshot: ResizeSnapshot,
     ) {
 
-        if (this.dragging) {
+        if (
+            this.dragging
+        ) {
             return;
         }
 
@@ -110,19 +116,16 @@ export class ResizeSession {
                 ? container.clientWidth
                 : container.clientHeight;
 
-        if (size <= 0) {
+        if (
+            size <= 0
+        ) {
             return;
         }
 
-        /*
-         * From this point on the resize
-         * session uses only snapshots.
-         */
-
         event.preventDefault();
 
-        this.minSizes =
-            [...minSizes];
+        this.snapshot =
+            snapshot;
 
         this.containerSize =
             size;
@@ -136,18 +139,9 @@ export class ResizeSession {
         this.dragging =
             true;
 
-        /*
-         * Prevent text selection while
-         * the pointer is being dragged.
-         */
         document.body.style.userSelect =
             "none";
 
-        /*
-         * Keep the resize cursor active
-         * even when the pointer leaves
-         * the narrow divider element.
-         */
         document.body.style.cursor =
             this.direction ===
                 "horizontal"
@@ -186,8 +180,8 @@ export class ResizeSession {
         this.dragging =
             false;
 
-        this.minSizes =
-            [];
+        this.snapshot =
+            null;
 
         this.containerSize =
             0;
@@ -200,7 +194,10 @@ export class ResizeSession {
         event: PointerEvent,
     ) {
 
-        if (!this.dragging) {
+        if (
+            !this.dragging ||
+            !this.snapshot
+        ) {
             return;
         }
 
@@ -217,16 +214,6 @@ export class ResizeSession {
         this.lastPosition =
             current;
 
-        /*
-         * IMPORTANT:
-         *
-         * No DOM measurement happens here.
-         *
-         * containerSize and minSizes
-         * are both snapshots from
-         * pointerdown.
-         */
-
         const deltaPercent =
             calculateResizeDelta({
                 pointerDeltaPx:
@@ -239,12 +226,11 @@ export class ResizeSession {
         this.onResize(
             deltaPercent,
             this.containerSize,
-            this.minSizes,
+            this.snapshot,
         );
     }
 
     private handlePointerUp() {
-
         this.destroy();
     }
 }

@@ -10,13 +10,17 @@ import {
     resizeSplitChildren,
 } from "../../resize/resize-split-children";
 
+import type {
+    ResizeSnapshot,
+} from "../../resize/resize-snapshot";
+
 export function resizeSplitCommand(
     layout: LayoutNode,
     splitId: string,
     index: number,
     delta: number,
     containerSize: number,
-    minSizes: number[],
+    snapshot: ResizeSnapshot,
 ): LayoutNode {
 
     return updateSplitSizes(
@@ -38,10 +42,22 @@ export function resizeSplitCommand(
                 return split;
             }
 
+            const minSizes =
+                snapshot.minSizesBySplitId.get(
+                    split.id,
+                );
+
+            if (!minSizes) {
+                return split;
+            }
+
             const result =
                 resizeSplitChildren({
                     sizes:
                         split.sizes,
+
+                    children:
+                        split.children,
 
                     minSizes,
 
@@ -50,12 +66,21 @@ export function resizeSplitCommand(
                     delta,
 
                     containerSize,
+
+                    direction:
+                        split.direction,
+
+                    snapshot,
                 });
 
             return {
                 ...split,
+
                 sizes:
                     result.sizes,
+
+                children:
+                    result.children,
             };
         },
     );

@@ -1,4 +1,6 @@
-import { useRef } from "react";
+import {
+    useRef,
+} from "react";
 
 import type {
     SplitNode,
@@ -15,10 +17,6 @@ import {
 import {
     getDividerPositions,
 } from "../engine";
-
-import {
-    calculateLayoutMinSize,
-} from "./calculate-layout-min-size";
 
 type Props = {
     node: SplitNode;
@@ -37,55 +35,15 @@ export function SplitRenderer({
             null,
         );
 
-    /*
-     * Calculate the minimum size of
-     * every complete child LayoutNode.
-     *
-     * This recursively includes:
-     *
-     * PanelNode
-     * TabsNode
-     * SplitNode
-     *
-     * and therefore represents the
-     * actual minimum size of the
-     * complete child subtree.
-     */
-    const childMinSizes =
-        node.children.map(
-            child =>
-                calculateLayoutMinSize(
-                    child,
-                ),
-        );
-
-    /*
-     * A horizontal split is constrained
-     * by child widths.
-     *
-     * A vertical split is constrained
-     * by child heights.
-     */
-    const minSizes =
-        isHorizontal
-            ? childMinSizes.map(
-                size =>
-                    size.width,
-            )
-            : childMinSizes.map(
-                size =>
-                    size.height,
-            );
-
     const dividerPositions =
         getDividerPositions(
             node.sizes,
         );
 
     return (
-
         <div
             ref={containerRef}
+
             className={`
                 relative
                 flex
@@ -111,14 +69,17 @@ export function SplitRenderer({
                         ] ?? 0;
 
                     return (
-
                         <div
-                            key={child.id}
+                            key={
+                                child.id
+                            }
+
                             className="
                                 min-h-0
                                 min-w-0
                                 shrink-0
                             "
+
                             style={
                                 isHorizontal
                                     ? {
@@ -137,11 +98,12 @@ export function SplitRenderer({
                         >
 
                             <LayoutRenderer
-                                node={child}
+                                node={
+                                    child
+                                }
                             />
 
                         </div>
-
                     );
                 },
             )}
@@ -151,9 +113,10 @@ export function SplitRenderer({
                     position,
                     index,
                 ) => (
-
                     <SplitDivider
                         key={index}
+
+                        node={node}
 
                         splitId={
                             node.id
@@ -174,16 +137,10 @@ export function SplitRenderer({
                         containerRef={
                             containerRef
                         }
-
-                        minSizes={
-                            minSizes
-                        }
                     />
-
                 ),
             )}
 
         </div>
-
     );
 }

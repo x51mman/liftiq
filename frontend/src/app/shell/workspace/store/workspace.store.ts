@@ -9,6 +9,8 @@ import type {
     DockPreviewPosition,
 } from "../model";
 
+import type { ResizeSnapshot } from "../engine/layout/resize/resize-snapshot";
+
 import { defaultLayout, workspaceCatalog } from "../model";
 import { createDefaultPanels } from "../model/factories/default-panels";
 
@@ -88,7 +90,7 @@ interface WorkspaceStore
         index: number,
         delta: number,
         containerSize: number,
-        minSizes: number[],
+        snapshot: ResizeSnapshot,
     ) => void;
 
     splitPanel(
@@ -331,7 +333,7 @@ export const useWorkspaceStore =
                 index,
                 delta,
                 containerSize,
-                minSizes,
+                snapshot,
             ) =>
                 set((state) => {
 
@@ -350,7 +352,7 @@ export const useWorkspaceStore =
                                     index,
                                     delta,
                                     containerSize,
-                                    minSizes,
+                                    snapshot,
                                 ),
                         },
                     };
