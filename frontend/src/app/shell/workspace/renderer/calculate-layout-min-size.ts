@@ -24,6 +24,64 @@ function getElementWidth(
         return DEFAULT_MIN_WIDTH;
     }
 
+    const children =
+        Array.from(
+            element.children,
+        ) as HTMLElement[];
+
+    /*
+     * PanelHeader:
+     *
+     * <header>
+     *     <title-group />
+     *     <actions-group />
+     * </header>
+     *
+     * Both groups use shrink-0, therefore their
+     * rendered widths represent their intrinsic
+     * content widths.
+     */
+    if (children.length > 0) {
+        const contentWidth =
+            children.reduce(
+                (
+                    total,
+                    child,
+                ) =>
+                    total +
+                    child.getBoundingClientRect()
+                        .width,
+                0,
+            );
+
+        const styles =
+            window.getComputedStyle(
+                element,
+            );
+
+        const paddingLeft =
+            parseFloat(
+                styles.paddingLeft,
+            ) || 0;
+
+        const paddingRight =
+            parseFloat(
+                styles.paddingRight,
+            ) || 0;
+
+        const width =
+            contentWidth +
+            paddingLeft +
+            paddingRight;
+
+        if (width > 0) {
+            return Math.ceil(width);
+        }
+    }
+
+    /*
+     * Fallback for elements without children.
+     */
     const width =
         element.scrollWidth;
 
@@ -42,7 +100,8 @@ function getElementHeight(
     }
 
     const height =
-        element.getBoundingClientRect().height;
+        element.getBoundingClientRect()
+            .height;
 
     if (height <= 0) {
         return DEFAULT_HEADER_HEIGHT;
@@ -61,9 +120,13 @@ function getPanelMinSize(
 
     return {
         width:
-            getElementWidth(header),
+            getElementWidth(
+                header,
+            ),
         height:
-            getElementHeight(header),
+            getElementHeight(
+                header,
+            ),
     };
 }
 
@@ -71,11 +134,13 @@ function getTabsMinSize(
     node: TabsNode,
 ): LayoutMinSize {
     let width = 0;
+
     let height =
         DEFAULT_HEADER_HEIGHT;
 
     for (
-        const panelId of node.panelIds
+        const panelId
+        of node.panelIds
     ) {
         const header =
             getPanelHeaderElement(
@@ -83,12 +148,16 @@ function getTabsMinSize(
             );
 
         width +=
-            getElementWidth(header);
+            getElementWidth(
+                header,
+            );
 
         height =
             Math.max(
                 height,
-                getElementHeight(header),
+                getElementHeight(
+                    header,
+                ),
             );
     }
 
@@ -125,14 +194,21 @@ function getSplitMinSize(
         return {
             width:
                 childSizes.reduce(
-                    (total, size) =>
-                        total + size.width,
+                    (
+                        total,
+                        size,
+                    ) =>
+                        total +
+                        size.width,
                     0,
                 ),
 
             height:
                 childSizes.reduce(
-                    (maximum, size) =>
+                    (
+                        maximum,
+                        size,
+                    ) =>
                         Math.max(
                             maximum,
                             size.height,
@@ -145,7 +221,10 @@ function getSplitMinSize(
     return {
         width:
             childSizes.reduce(
-                (maximum, size) =>
+                (
+                    maximum,
+                    size,
+                ) =>
                     Math.max(
                         maximum,
                         size.width,
@@ -155,8 +234,12 @@ function getSplitMinSize(
 
         height:
             childSizes.reduce(
-                (total, size) =>
-                    total + size.height,
+                (
+                    total,
+                    size,
+                ) =>
+                    total +
+                    size.height,
                 0,
             ),
     };
@@ -167,13 +250,19 @@ export function calculateLayoutMinSize(
 ): LayoutMinSize {
     switch (node.type) {
         case "panel":
-            return getPanelMinSize(node);
+            return getPanelMinSize(
+                node,
+            );
 
         case "tabs":
-            return getTabsMinSize(node);
+            return getTabsMinSize(
+                node,
+            );
 
         case "split":
-            return getSplitMinSize(node);
+            return getSplitMinSize(
+                node,
+            );
 
         default:
             return {

@@ -1,12 +1,22 @@
-import { panelDefinitions } from "../registry/panel.definitions";
+import {
+    panelDefinitions,
+} from "../registry/panel.definitions";
 
-import type { PanelId } from "../model/workspace.types";
+import type {
+    PanelId,
+} from "../model/workspace.types";
 
-import { PanelSurface } from "./PanelSurface";
+import {
+    PanelSurface,
+} from "./PanelSurface";
 
-import { PanelFrame } from "./PanelFrame";
+import {
+    PanelFrame,
+} from "./PanelFrame";
 
-import { useWorkspaceStore } from "../store";
+import {
+    useWorkspaceStore,
+} from "../store";
 
 type Props = {
     panelId: PanelId;
@@ -15,6 +25,12 @@ type Props = {
 export function PanelHost({
     panelId,
 }: Props) {
+
+    const undockPanel =
+        useWorkspaceStore(
+            state =>
+                state.undockPanel,
+        );
 
     const Component =
         panelDefinitions[
@@ -25,14 +41,7 @@ export function PanelHost({
         return null;
     }
 
-    const undockPanel =
-        useWorkspaceStore(
-            state =>
-                state.undockPanel,
-        );
-
     return (
-
         <PanelSurface
             panelId={panelId}
         >

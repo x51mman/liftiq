@@ -4,9 +4,7 @@ import {
     useCallback,
 } from "react";
 
-import type {
-    FloatingNode,
-} from "../model";
+import type { FloatingNode } from "../model";
 
 import {
     panelDefinitions,
@@ -28,7 +26,9 @@ import {
     calculateDockPosition,
 } from "./calculate-dock-position";
 
-import { PanelFrame } from "./PanelFrame";
+import {
+    PanelFrame,
+} from "./PanelFrame";
 
 type Props = {
     node: FloatingNode;
@@ -37,7 +37,6 @@ type Props = {
 export function FloatingWindow({
     node,
 }: Props) {
-
     const showDockPreview =
         useWorkspaceStore(
             state =>
@@ -79,34 +78,25 @@ export function FloatingWindow({
         node.panelId
         ];
 
-    const dragRef =
-        useRef({
-
-            startPointerX: 0,
-            startPointerY: 0,
-
-            startX: 0,
-            startY: 0,
-
-            isDragging: false,
-        });
+    const dragRef = useRef({
+        startPointerX: 0,
+        startPointerY: 0,
+        startX: 0,
+        startY: 0,
+        isDragging: false,
+    });
 
     const rafRef =
-        useRef<number | null>(
-            null,
-        );
+        useRef<number | null>(null);
 
     const nextPositionRef =
         useRef<{
             x: number;
             y: number;
-        } | null>(
-            null,
-        );
+        } | null>(null);
 
     const flushPosition =
         useCallback(() => {
-
             const nextPosition =
                 nextPositionRef.current;
 
@@ -120,152 +110,125 @@ export function FloatingWindow({
                 nextPosition.y,
             );
 
-            rafRef.current =
-                null;
-
+            rafRef.current = null;
         }, [
             moveFloatingWindow,
             node.id,
         ]);
 
     const handlePointerMove =
-        useCallback((
-            event: PointerEvent,
-        ) => {
+        useCallback(
+            (event: PointerEvent) => {
+                if (
+                    !dragRef.current.isDragging
+                ) {
+                    return;
+                }
 
-            if (
-                !dragRef.current
-                    .isDragging
-            ) {
-                return;
-            }
-
-            const deltaX =
-                event.clientX -
-                dragRef.current
-                    .startPointerX;
-
-            const deltaY =
-                event.clientY -
-                dragRef.current
-                    .startPointerY;
-
-            nextPositionRef.current = {
-
-                x:
+                const deltaX =
+                    event.clientX -
                     dragRef.current
-                        .startX +
-                    deltaX,
+                        .startPointerX;
 
-                y:
+                const deltaY =
+                    event.clientY -
                     dragRef.current
-                        .startY +
-                    deltaY,
-            };
+                        .startPointerY;
 
-            const targetPanelId =
-                findPanelUnderPointer(
-                    event.clientX,
-                    event.clientY,
-                    node.panelId,
-                );
+                nextPositionRef.current = {
+                    x:
+                        dragRef.current.startX +
+                        deltaX,
+                    y:
+                        dragRef.current.startY +
+                        deltaY,
+                };
 
-            if (!targetPanelId) {
-
-                hideDockPreview();
-
-            } else {
-
-                const targetElement =
-                    getPanelElement(
-                        targetPanelId,
+                const targetPanelId =
+                    findPanelUnderPointer(
+                        event.clientX,
+                        event.clientY,
+                        node.panelId,
                     );
 
-                if (!targetElement) {
-
+                if (!targetPanelId) {
                     hideDockPreview();
-
                 } else {
-
-                    const rect =
-                        targetElement
-                            .getBoundingClientRect();
-
-                    const position =
-                        calculateDockPosition(
-                            rect,
-                            event.clientX,
-                            event.clientY,
+                    const targetElement =
+                        getPanelElement(
+                            targetPanelId,
                         );
 
-                    showDockPreview(
-                        targetPanelId,
-                        position,
-                    );
+                    if (!targetElement) {
+                        hideDockPreview();
+                    } else {
+                        const rect =
+                            targetElement.getBoundingClientRect();
+
+                        const position =
+                            calculateDockPosition(
+                                rect,
+                                event.clientX,
+                                event.clientY,
+                            );
+
+                        showDockPreview(
+                            targetPanelId,
+                            position,
+                        );
+                    }
                 }
-            }
 
-            if (
-                rafRef.current ===
-                null
-            ) {
-                rafRef.current =
-                    requestAnimationFrame(
-                        flushPosition,
-                    );
-            }
-
-        }, [
-            flushPosition,
-            hideDockPreview,
-            showDockPreview,
-            node.panelId,
-        ]);
+                if (
+                    rafRef.current === null
+                ) {
+                    rafRef.current =
+                        requestAnimationFrame(
+                            flushPosition,
+                        );
+                }
+            },
+            [
+                flushPosition,
+                hideDockPreview,
+                showDockPreview,
+                node.panelId,
+            ],
+        );
 
     const handlePointerUp =
         useCallback(() => {
-
             if (
-                !dragRef.current
-                    .isDragging
+                !dragRef.current.isDragging
             ) {
                 return;
             }
 
-            dragRef.current
-                .isDragging = false;
+            dragRef.current.isDragging =
+                false;
 
             window.removeEventListener(
                 "pointermove",
                 handlePointerMove,
             );
 
-            window.removeEventListener(
-                "pointerup",
-                handlePointerUp,
-            );
-
             if (
-                rafRef.current !==
-                null
+                rafRef.current !== null
             ) {
                 cancelAnimationFrame(
                     rafRef.current,
                 );
 
-                rafRef.current =
-                    null;
+                rafRef.current = null;
             }
 
             flushPosition();
 
             const preview =
-                useWorkspaceStore
-                    .getState()
+                useWorkspaceStore.getState()
                     .dockPreview;
 
             if (preview) {
-
                 dockPanel(
                     node.panelId,
                     preview.targetPanelId,
@@ -279,16 +242,12 @@ export function FloatingWindow({
                 null;
 
             dragRef.current = {
-
                 startPointerX: 0,
                 startPointerY: 0,
-
                 startX: 0,
                 startY: 0,
-
                 isDragging: false,
             };
-
         }, [
             dockPanel,
             flushPosition,
@@ -298,67 +257,53 @@ export function FloatingWindow({
         ]);
 
     const handleHeaderPointerDown =
-        useCallback((
-            event:
-                React.PointerEvent<HTMLDivElement>,
-        ) => {
-
-            /*
-             * A header pointer-down also bubbles
-             * through PanelFrame, where the panel
-             * receives normal workspace focus.
-             */
-
-            event.currentTarget
-                .setPointerCapture(
+        useCallback(
+            (
+                event: React.PointerEvent<HTMLDivElement>,
+            ) => {
+                event.currentTarget.setPointerCapture(
                     event.pointerId,
                 );
 
-            bringFloatingWindowToFront(
-                node.id,
-            );
+                bringFloatingWindowToFront(
+                    node.id,
+                );
 
-            dragRef.current = {
+                dragRef.current = {
+                    startPointerX:
+                        event.clientX,
+                    startPointerY:
+                        event.clientY,
+                    startX: node.x,
+                    startY: node.y,
+                    isDragging: true,
+                };
 
-                startPointerX:
-                    event.clientX,
+                window.addEventListener(
+                    "pointermove",
+                    handlePointerMove,
+                );
 
-                startPointerY:
-                    event.clientY,
-
-                startX:
-                    node.x,
-
-                startY:
-                    node.y,
-
-                isDragging:
-                    true,
-            };
-
-            window.addEventListener(
-                "pointermove",
+                window.addEventListener(
+                    "pointerup",
+                    handlePointerUp,
+                    {
+                        once: true,
+                    },
+                );
+            },
+            [
+                bringFloatingWindowToFront,
                 handlePointerMove,
-            );
-
-            window.addEventListener(
-                "pointerup",
                 handlePointerUp,
-            );
-
-        }, [
-            bringFloatingWindowToFront,
-            handlePointerMove,
-            handlePointerUp,
-            node.id,
-            node.x,
-            node.y,
-        ]);
+                node.id,
+                node.x,
+                node.y,
+            ],
+        );
 
     useEffect(() => {
-
         return () => {
-
             window.removeEventListener(
                 "pointermove",
                 handlePointerMove,
@@ -370,22 +315,21 @@ export function FloatingWindow({
             );
 
             if (
-                rafRef.current !==
-                null
+                rafRef.current !== null
             ) {
                 cancelAnimationFrame(
                     rafRef.current,
                 );
+
+                rafRef.current = null;
             }
         };
-
     }, [
         handlePointerMove,
         handlePointerUp,
     ]);
 
     if (!definition) {
-
         return (
             <div
                 className="
@@ -403,9 +347,7 @@ export function FloatingWindow({
                     height: node.height,
                 }}
             >
-                Unknown panel:
-                {" "}
-                {node.panelId}
+                Unknown panel: {node.panelId}
             </div>
         );
     }
@@ -414,7 +356,6 @@ export function FloatingWindow({
         definition.component;
 
     return (
-
         <div
             className="
                 absolute
@@ -439,26 +380,22 @@ export function FloatingWindow({
         >
             <PanelFrame
                 panelId={node.panelId}
-
                 onClose={() =>
                     closeFloatingWindow(
                         node.id,
                     )
                 }
-
                 onFocus={() =>
                     bringFloatingWindowToFront(
                         node.id,
                     )
                 }
-
                 onHeaderPointerDown={
                     handleHeaderPointerDown
                 }
             >
                 <Component />
             </PanelFrame>
-
         </div>
     );
 }
