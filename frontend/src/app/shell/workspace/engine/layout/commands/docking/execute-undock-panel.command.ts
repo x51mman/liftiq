@@ -8,10 +8,13 @@ import {
 } from "../../docking";
 
 import {
-    createFloatingNode, getNextFloatingZIndex,
+    createFloatingWindow,
+    getNextFloatingZIndex,
 } from "../../floating";
 
-import { findPanelContainerLocation } from "@tree";
+import {
+    findPanelContainerLocation,
+} from "@tree";
 
 type Result = {
     layout: WorkspaceLayout;
@@ -21,52 +24,87 @@ export function executeUndockPanelCommand(
     layout: WorkspaceLayout,
     panelId: PanelId,
 ): Result {
+    /*
+     * 1. Megkeressük azt az ablakot,
+     *    amelyik a panelt tartalmazza.
+     */
+    const sourceWindow = layout.floating.find(
+        window =>
+            findPanelContainerLocation(
+                window.root,
+                panelId,
+            ) !== null,
+    );
 
-    const alreadyFloating =
-        layout.floating.some(
-            node =>
-                node.panelId === panelId,
-        );
-
-    const location =
-        findPanelContainerLocation(
-            layout.root,
-            panelId,
-        );
-
-    if (!location && alreadyFloating) {
-        return {
-            layout,
-        };
+    if (!sourceWindow) {
+        return { layout };
     }
 
-    const nextRoot =
-        removePanelFromContainer(
-            layout.root,
+    /*
+     * 2. Csak összetett ablakból lehet
+     *    panelt kiemelni.
+     */
+    if (sourceWindow.root.type === "panel") {
+        return { layout };
+    }
+
+    /*
+     * 3. Eltávolítjuk a panelt az eredeti
+     *    ablak elrendezéséből.
+     */
+    const nextRoot = removePanelFromContainer(
+        sourceWindow.root,
+        panelId,
+    );
+
+    /*
+     * 4. Ellenőrizzük, hogy az eltávolítás
+     *    után maradt-e érvényes elrendezés.
+     *
+     * A removePanelFromContainer a meglévő
+     * tree-segéd, ezért ellenőrizzük, hogy
+     * a kiemelt panel valóban kikerült-e.
+     */
+    const panelStillPresent =
+        findPanelContainerLocation(
+            nextRoot,
             panelId,
-        );
+        ) !== null;
 
-    const nextZIndex =
-        getNextFloatingZIndex(
-            layout.floating,
-        );
+    if (panelStillPresent) {
+        return { layout };
+    }
 
-    const floatingNode =
-        createFloatingNode(
-            panelId,
-            nextZIndex,
-        );
+    /*
+     * 5. Az új ablak a legmagasabb
+     *    z-index fölé kerül.
+     */
+    const nextZIndex = getNextFloatingZIndex(
+        layout.floating,
+    );
 
+    const floatingWindow = createFloatingWindow(
+        panelId,
+        nextZIndex,
+    );
+
+    /*
+     * 6. Frissítjük az eredeti ablakot,
+     *    és hozzáadjuk az új lebegő ablakot.
+     */
     return {
-
         layout: {
-
-            root:
-                nextRoot,
-
+            ...layout,
             floating: [
-                ...layout.floating,
-                floatingNode,
+                ...layout.floating.map(window =>
+                    window.id === sourceWindow.id
+                        ? {
+                            ...window,
+                            root: nextRoot,
+                        }
+                        : window,
+                ),
+                floatingWindow,
             ],
         },
     };

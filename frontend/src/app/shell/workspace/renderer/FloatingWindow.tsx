@@ -4,7 +4,7 @@ import {
     useCallback,
 } from "react";
 
-import type { FloatingNode } from "../model";
+import type { FloatingWindowModel } from "@model";
 
 import {
     panelDefinitions,
@@ -31,7 +31,7 @@ import {
 } from "./PanelFrame";
 
 type Props = {
-    node: FloatingNode;
+    node: FloatingWindowModel;
 };
 
 export function FloatingWindow({

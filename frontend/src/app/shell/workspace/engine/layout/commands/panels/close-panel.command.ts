@@ -8,31 +8,43 @@ import {
 } from "../../docking";
 
 import {
-    findFocusCandidate
+    findFocusCandidate,
 } from "../../../focus";
+
+import {
+    findPanelContainerLocation,
+} from "@tree";
 
 type Result = Pick<
     WorkspaceState,
     "panels" |
     "activePanelId" |
     "layout"
+
 >;
 
 export function executeClosePanelCommand(
     state: WorkspaceState,
     panelId: PanelId,
 ): Result {
+    /*
+    * Megkeressük azt a floating ablakot,
+    * amelynek layoutfájában a panel található.
+    */
+    const sourceWindow = state.layout.floating.find(
+        window =>
+            findPanelContainerLocation(
+                window.root,
+                panelId,
+            ) !== null,
+    );
+
+    const isFloating = sourceWindow !== undefined;
 
     /*
-     * 1. Ellenőrizzük, hogy a panel
-     *    ténylegesen jelen van-e a layoutban.
+     * Ha a panel nem található floating ablakban,
+     * ellenőrizzük a panel registry állapotát.
      */
-    const isFloating =
-        state.layout.floating.some(
-            node =>
-                node.panelId === panelId,
-        );
-
     const isDocked =
         !isFloating &&
         state.panels.some(
@@ -42,80 +54,99 @@ export function executeClosePanelCommand(
         );
 
     /*
-     * Ha a panel már nincs használatban,
+     * Ha a panel nincs használatban,
      * nincs mit bezárni.
      */
-    if (
-        !isFloating &&
-        !isDocked
-    ) {
+    if (!isFloating && !isDocked) {
         return {
-            panels:
-                state.panels,
-
-            activePanelId:
-                state.activePanelId,
-
-            layout:
-                state.layout,
+            panels: state.panels,
+            activePanelId: state.activePanelId,
+            layout: state.layout,
         };
     }
 
     /*
-     * 2. A következő focus candidate-et
-     *    MÉG A CLOSE ELŐTT keressük meg.
-     *
-     *    Ez fontos, mert ekkor még rendelkezésünkre
-     *    áll a bezárandó panel teljes layout-környezete.
+     * A következő fókuszjelöltet a bezárás előtt
+     * keressük meg.
      */
-    const focusCandidate =
-        findFocusCandidate(
-            state.layout,
+    const focusCandidate = findFocusCandidate(
+        state.layout,
+        panelId,
+    );
+
+    /*
+     * A panel registry állapotának frissítése.
+     */
+    const panels = state.panels.map(
+        panel =>
+            panel.id === panelId
+                ? {
+                    ...panel,
+                    state: "closed" as const,
+                }
+                : panel,
+    );
+
+    /*
+     * A megfelelő floating ablak layoutfájából
+     * eltávolítjuk a panelt.
+     *
+     * Ha az ablak csak ezt a panelt tartalmazza,
+     * magát az ablakot is eltávolítjuk.
+     */
+    let floating = state.layout.floating;
+
+    if (sourceWindow) {
+        const nextRoot = removePanelFromContainer(
+            sourceWindow.root,
             panelId,
         );
 
-    /*
-     * 3. Panel registry state
-     */
-    const panels =
-        state.panels.map(
-            panel =>
-                panel.id === panelId
-                    ? {
-                        ...panel,
-                        state: "closed" as const,
-                    }
-                    : panel,
-        );
-
-    /*
-     * 4. Floating panel eltávolítása
-     */
-    const floating =
-        state.layout.floating.filter(
-            node =>
-                node.panelId !== panelId,
-        );
-
-    /*
-     * 5. Docked panel eltávolítása
-     */
-    const root =
-        isFloating
-            ? state.layout.root
-            : removePanelFromContainer(
-                state.layout.root,
+        const remainingFloating =
+            findPanelContainerLocation(
+                nextRoot,
                 panelId,
+            ) !== null;
+
+        if (remainingFloating) {
+            /*
+             * Ha a panel valamilyen okból nem került ki
+             * a fából, nem módosítjuk a layoutot.
+             */
+            return {
+                panels: state.panels,
+                activePanelId: state.activePanelId,
+                layout: state.layout,
+            };
+        }
+
+        /*
+         * Ha az eredeti gyökér egy önálló panel volt,
+         * az egész ablak megszűnik.
+         *
+         * Összetett ablak esetén megtartjuk az ablakot,
+         * és frissítjük a gyökerét.
+         */
+        if (sourceWindow.root.type === "panel") {
+            floating = floating.filter(
+                window => window.id !== sourceWindow.id,
             );
+        } else {
+            floating = floating.map(
+                window =>
+                    window.id === sourceWindow.id
+                        ? {
+                            ...window,
+                            root: nextRoot,
+                        }
+                        : window,
+            );
+        }
+    }
 
     /*
-     * 6. Focus
-     *
      * Ha a bezárt panel volt aktív,
-     * a candidate kapja meg a fókuszt.
-     *
-     * Ha nem ő volt aktív, az aktuális
-     * focus változatlan marad.
+     * a következő jelölt kapja meg a fókuszt.
      */
     const activePanelId =
         state.activePanelId === panelId
@@ -123,14 +154,10 @@ export function executeClosePanelCommand(
             : state.activePanelId;
 
     return {
-
         panels,
-
         activePanelId,
-
         layout: {
             ...state.layout,
-            root,
             floating,
         },
     };

@@ -1,5 +1,5 @@
 import type {
-    FloatingNode,
+    FloatingWindowModel,
 } from "../model";
 
 import {
@@ -7,7 +7,7 @@ import {
 } from "./FloatingWindow";
 
 type Props = {
-    nodes: FloatingNode[];
+    nodes: FloatingWindowModel[];
 };
 
 export function FloatingRenderer({

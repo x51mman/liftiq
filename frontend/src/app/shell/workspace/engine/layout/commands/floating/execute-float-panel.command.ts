@@ -1,14 +1,8 @@
-import type { PanelId, WorkspaceLayout, } from "@model";
+import type { PanelId, WorkspaceLayout } from "@model";
 
-import {
-    removePanelFromContainer,
-} from "../../docking";
-
-import {
-    findPanelContainerLocation,
-} from "@tree";
-
-import { getNextFloatingZIndex, createFloatingNode } from "../../floating";
+import { removePanelFromContainer } from "../../docking";
+import { createFloatingWindow, getNextFloatingZIndex } from "../../floating";
+import { findPanelContainerLocation } from "@tree";
 
 type Result = {
     layout: WorkspaceLayout;
@@ -18,88 +12,81 @@ export function executeFloatPanelCommand(
     layout: WorkspaceLayout,
     panelId: PanelId,
 ): Result {
-
     /*
-     * A panel már floating.
-     *
-     * Ilyenkor nem hozunk létre második
-     * floating node-ot.
-     *
-     * A tényleges "bring to front" műveletet
-     * külön command/store művelet kezeli.
-     */
-    const alreadyFloating =
-        layout.floating.some(
-            node =>
-                node.panelId === panelId,
-        );
+    * Megkeressük, hogy a panel már egy önálló
+    * floating ablakban van-e.
+    *
+    * Az összetett floating ablakban található panel
+    * nem számít önállóan floating panelnek:
+    * abból továbbra is kiemelhető.
+    */
+    const alreadyFloating = layout.floating.some(
+        window =>
+            window.root.type === "panel" &&
+            window.root.panelId === panelId,
+    );
 
     if (alreadyFloating) {
-        return {
-            layout,
-        };
+        return { layout };
     }
 
     /*
-     * A panelnek jelenleg a workspace layoutban
-     * kell lennie.
-     *
-     * Ha nincs benne, nincs mit floatolni.
+     * Megkeressük azt a floating ablakot,
+     * amelynek saját layoutfájában a panel található.
      */
-    const location =
-        findPanelContainerLocation(
-            layout.root,
-            panelId,
-        );
+    const sourceWindow = layout.floating.find(
+        window =>
+            findPanelContainerLocation(window.root, panelId) !== null,
+    );
 
-    if (!location) {
-        return {
-            layout,
-        };
+    /*
+     * Ha a panel egyetlen floating ablakban sincs,
+     * nincs mit kiemelni.
+     */
+    if (!sourceWindow) {
+        return { layout };
     }
 
     /*
-     * A panelt eltávolítjuk az aktuális
-     * containerből.
-     *
-     * Ez lehet:
-     * - önálló panel
-     * - split
-     * - tabs
-     * - nested split
-     * - tabs egy spliten belül
+     * A panel eltávolítása a forrásablak saját
+     * layoutfájából.
      */
-    const nextRoot =
-        removePanelFromContainer(
-            layout.root,
-            panelId,
-        );
+    const nextRoot = removePanelFromContainer(
+        sourceWindow.root,
+        panelId,
+    );
 
     /*
-     * Az új floating ablak a jelenlegi
-     * floating stack tetejére kerül.
+     * Védelmi ellenőrzés: csak akkor folytatjuk,
+     * ha a panel ténylegesen kikerült a forrásfából.
      */
-    const nextZIndex =
-        getNextFloatingZIndex(
-            layout.floating,
-        );
+    const panelStillPresent =
+        findPanelContainerLocation(nextRoot, panelId) !== null;
 
-    const floatingNode =
-        createFloatingNode(
-            panelId,
-            nextZIndex,
-        );
+    if (panelStillPresent) {
+        return { layout };
+    }
+
+    /*
+     * Az új floating ablak a legfelső z-indexet kapja.
+     */
+    const nextZIndex = getNextFloatingZIndex(layout.floating);
+
+    const floatingWindow = createFloatingWindow(
+        panelId,
+        nextZIndex,
+    );
 
     return {
-
         layout: {
-
-            root:
-                nextRoot,
-
+            ...layout,
             floating: [
-                ...layout.floating,
-                floatingNode,
+                ...layout.floating.map(window =>
+                    window.id === sourceWindow.id
+                        ? { ...window, root: nextRoot }
+                        : window,
+                ),
+                floatingWindow,
             ],
         },
     };

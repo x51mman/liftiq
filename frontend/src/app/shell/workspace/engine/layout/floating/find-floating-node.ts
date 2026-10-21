@@ -1,12 +1,12 @@
 import type {
-    FloatingNode,
+    FloatingWindowModel,
     WorkspaceLayout,
 } from "@model";
 
 export function findFloatingNode(
     layout: WorkspaceLayout,
     nodeId: string,
-): FloatingNode | undefined {
+): FloatingWindowModel | undefined {
 
     return layout.floating.find(
         node =>

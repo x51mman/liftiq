@@ -1,5 +1,5 @@
 import type {
-    FloatingNode,
+    FloatingWindowModel,
     PanelId,
 } from "@model";
 
@@ -7,19 +7,18 @@ import {
     createLayoutNodeId,
 } from "../id";
 
-export function createFloatingNode(
+export function createFloatingWindow(
     panelId: PanelId,
     zIndex: number,
-): FloatingNode {
-
+): FloatingWindowModel {
     return {
+        id: createLayoutNodeId(),
 
-        type: "floating",
-
-        id:
-            createLayoutNodeId(),
-
-        panelId,
+        root: {
+            type: "panel",
+            id: createLayoutNodeId(),
+            panelId,
+        },
 
         x: 120,
         y: 120,
@@ -28,6 +27,5 @@ export function createFloatingNode(
         height: 600,
 
         zIndex,
-
     };
 }

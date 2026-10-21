@@ -1,5 +1,5 @@
 import type {
-    FloatingNode,
+    FloatingWindowModel,
     WorkspaceLayout,
 } from "@model";
 
@@ -7,8 +7,8 @@ export function updateFloatingNode(
     layout: WorkspaceLayout,
     nodeId: string,
     updater: (
-        node: FloatingNode,
-    ) => FloatingNode,
+        node: FloatingWindowModel,
+    ) => FloatingWindowModel,
 ): WorkspaceLayout {
 
     return {

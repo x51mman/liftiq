@@ -4,12 +4,13 @@ import type {
 } from "@model";
 
 import {
-    findPanelContainerLocation, updateTabsNode,
-} from "@tree";
+    createFloatingWindow,
+    getNextFloatingZIndex,
+} from "../../floating";
 
 import {
-    createFloatingNode, getNextFloatingZIndex
-} from "../../floating";
+    findPanelContainerLocation,
+} from "@tree";
 
 type Result = {
     layout: WorkspaceLayout;
@@ -19,92 +20,52 @@ export function executeOpenPanelCommand(
     layout: WorkspaceLayout,
     panelId: PanelId,
 ): Result {
-
     /*
-     * Már floating?
+     * Ellenőrizzük, hogy a panel már szerepel-e
+     * valamelyik floating window layoutfájában.
      *
-     * Egy panelből csak egy példány
-     * lehet.
+     * Egy panelből csak egy megnyitott példány
+     * lehet a workspace-ben.
      */
-    const alreadyFloating =
-        layout.floating.some(
-            node =>
-                node.panelId === panelId,
-        );
+    const alreadyOpen = layout.floating.some(
+        window =>
+            findPanelContainerLocation(
+                window.root,
+                panelId,
+            ) !== null,
+    );
 
-    if (alreadyFloating) {
+    if (alreadyOpen) {
         return {
             layout,
         };
     }
 
     /*
-     * Már a dock layoutban van?
-     */
-    const location =
-        findPanelContainerLocation(
-            layout.root,
-            panelId,
-        );
-
-    if (location) {
-
-        if (
-            location.container.type === "tabs"
-        ) {
-
-            return {
-
-                layout: {
-
-                    ...layout,
-
-                    root:
-                        updateTabsNode(
-                            layout.root,
-                            location.container.id,
-                            node => ({
-                                ...node,
-
-                                activePanelId:
-                                    panelId,
-                            }),
-                        ),
-                },
-            };
-        }
-
-        return {
-            layout,
-        };
-    }
-
-    /*
-     * A panel jelenleg sehol nincs.
+     * A panel még nincs megnyitva.
      *
-     * Az alkalmazás első megnyitása
-     * floating window-ként történik.
+     * Létrehozzuk az új FloatingWindowModel
+     * objektumot, amelynek saját root layoutfája
+     * egyetlen PanelNode-ból áll.
      */
-
     const nextZIndex =
         getNextFloatingZIndex(
             layout.floating,
         );
 
-    const floatingNode =
-        createFloatingNode(
+    const floatingWindow =
+        createFloatingWindow(
             panelId,
             nextZIndex,
         );
 
     return {
         layout: {
-
             ...layout,
 
             floating: [
                 ...layout.floating,
-                floatingNode,
+                floatingWindow,
             ],
         },
     };

@@ -25,17 +25,6 @@ export interface SplitNode {
     children: LayoutNode[];
 }
 
-export interface FloatingNode {
-    type: "floating";
-    id: string;
-    panelId: PanelId;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    zIndex: number;
-}
-
 export type LayoutNode =
     | PanelNode
     | TabsNode

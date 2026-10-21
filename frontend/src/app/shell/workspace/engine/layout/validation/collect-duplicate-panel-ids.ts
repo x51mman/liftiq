@@ -10,73 +10,42 @@ import {
 export function collectDuplicatePanelIds(
     layout: WorkspaceLayout,
 ): PanelId[] {
+    const seen = new Set<PanelId>();
+    const duplicates = new Set<PanelId>();
 
-    const seen =
-        new Set<PanelId>();
-
-    const duplicates =
-        new Set<PanelId>();
-
-    function register(
-        panelId: PanelId,
-    ) {
-        if (
-            seen.has(panelId)
-        ) {
-            duplicates.add(
-                panelId,
-            );
-
+    function register(panelId: PanelId) {
+        if (seen.has(panelId)) {
+            duplicates.add(panelId);
             return;
         }
 
-        seen.add(
-            panelId,
-        );
+        seen.add(panelId);
     }
 
-    visitLayout(
-        layout.root,
-        node => {
-
-            switch (
-            node.type
-            ) {
-
+    /*
+     * Minden floating ablak saját layoutfáját
+     * megvizsgáljuk.
+     *
+     * A seen és duplicates halmazok közösek,
+     * így a különböző ablakok közötti duplikációkat
+     * is felismerjük.
+     */
+    for (const window of layout.floating) {
+        visitLayout(window.root, node => {
+            switch (node.type) {
                 case "panel":
-
-                    register(
-                        node.panelId,
-                    );
-
+                    register(node.panelId);
                     break;
 
                 case "tabs":
-
-                    for (
-                        const panelId
-                        of node.panelIds
-                    ) {
-                        register(
-                            panelId,
-                        );
+                    for (const panelId of node.panelIds) {
+                        register(panelId);
                     }
-
                     break;
             }
-        },
-    );
-
-    for (
-        const floating
-        of layout.floating
-    ) {
-        register(
-            floating.panelId,
-        );
+        });
     }
 
-    return [
-        ...duplicates,
-    ];
+    return [...duplicates];
+
 }

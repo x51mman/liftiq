@@ -10,52 +10,30 @@ import {
 export function collectLayoutPanels(
     layout: WorkspaceLayout,
 ): PanelId[] {
+    const panelIds = new Set<PanelId>();
 
-    const panelIds =
-        new Set<PanelId>();
+    for (const window of layout.floating) {
+        visitLayout(
+            window.root,
+            node => {
+                switch (node.type) {
+                    case "panel":
+                        panelIds.add(node.panelId);
+                        break;
 
-    visitLayout(
-        layout.root,
-        node => {
+                    case "tabs":
+                        for (const panelId of node.panelIds) {
+                            panelIds.add(panelId);
+                        }
+                        break;
 
-            switch (
-            node.type
-            ) {
-
-                case "panel":
-
-                    panelIds.add(
-                        node.panelId,
-                    );
-
-                    break;
-
-                case "tabs":
-
-                    for (
-                        const panelId
-                        of node.panelIds
-                    ) {
-                        panelIds.add(
-                            panelId,
-                        );
-                    }
-
-                    break;
-            }
-        },
-    );
-
-    for (
-        const floating
-        of layout.floating
-    ) {
-        panelIds.add(
-            floating.panelId,
+                    case "split":
+                        break;
+                }
+            },
         );
     }
 
-    return [
-        ...panelIds,
-    ];
+    return [...panelIds];
+
 }

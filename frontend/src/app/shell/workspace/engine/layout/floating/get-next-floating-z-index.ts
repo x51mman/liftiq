@@ -1,9 +1,9 @@
 import type {
-    FloatingNode,
+    FloatingWindowModel,
 } from "@model";
 
 export function getNextFloatingZIndex(
-    floating: FloatingNode[],
+    floating: FloatingWindowModel[],
 ): number {
 
     const maxZIndex =

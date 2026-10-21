@@ -2,19 +2,15 @@ import type {
     LayoutNode,
     PanelId,
     SplitNode,
-} from "../../model";
-
-import type {
     WorkspaceLayout,
+    FloatingWindowModel,
 } from "../../model";
 
 function collectPanels(
     node: LayoutNode,
     result: PanelId[] = [],
 ): PanelId[] {
-
     switch (node.type) {
-
         case "panel":
             result.push(node.panelId);
             break;
@@ -24,17 +20,9 @@ function collectPanels(
             break;
 
         case "split":
-
-            for (
-                const child
-                of node.children
-            ) {
-                collectPanels(
-                    child,
-                    result,
-                );
+            for (const child of node.children) {
+                collectPanels(child, result);
             }
-
             break;
     }
 
@@ -46,36 +34,24 @@ function findPanelParentSplit(
     panelId: PanelId,
     parent: SplitNode | null = null,
 ): SplitNode | null {
-
     switch (node.type) {
-
         case "panel":
-
             return node.panelId === panelId
                 ? parent
                 : null;
 
         case "tabs":
-
-            return node.panelIds.includes(
-                panelId,
-            )
+            return node.panelIds.includes(panelId)
                 ? parent
                 : null;
 
         case "split":
-
-            for (
-                const child
-                of node.children
-            ) {
-
-                const found =
-                    findPanelParentSplit(
-                        child,
-                        panelId,
-                        node,
-                    );
+            for (const child of node.children) {
+                const found = findPanelParentSplit(
+                    child,
+                    panelId,
+                    node,
+                );
 
                 if (found) {
                     return found;
@@ -90,95 +66,65 @@ function findPanelInNode(
     node: LayoutNode,
     excludedPanelId: PanelId,
 ): PanelId | null {
-
-    const panels =
-        collectPanels(node);
+    const panels = collectPanels(node);
 
     return (
         panels.find(
-            panelId =>
-                panelId !==
-                excludedPanelId,
-        )
-        ?? null
+            panelId => panelId !== excludedPanelId,
+        ) ?? null
     );
 }
 
-export function findFocusCandidate(
-    layout: WorkspaceLayout,
-    closingPanelId: PanelId,
+function findPanelInTabs(
+    node: LayoutNode,
+    panelId: PanelId,
 ): PanelId | null {
+    switch (node.type) {
+        case "panel":
+            return null;
 
+        case "tabs": {
+            if (!node.panelIds.includes(panelId)) {
+                return null;
+            }
+
+            const index = node.panelIds.indexOf(panelId);
+
+            // Először a következő, majd az előző tab.
+            return (
+                node.panelIds[index + 1] ??
+                node.panelIds[index - 1] ??
+                null
+            );
+        }
+
+        case "split":
+            for (const child of node.children) {
+                const found = findPanelInTabs(
+                    child,
+                    panelId,
+                );
+
+                if (found) {
+                    return found;
+                }
+            }
+
+            return null;
+    }
+}
+
+function findPanelInWindow(
+    window: FloatingWindowModel,
+    panelId: PanelId,
+): PanelId | null {
     /*
      * 1. Ugyanazon TabsNode másik tabja.
      */
-    const findInTabs =
-        (
-            node: LayoutNode,
-        ): PanelId | null => {
-
-            switch (node.type) {
-
-                case "panel":
-                    return null;
-
-                case "tabs": {
-
-                    if (
-                        !node.panelIds.includes(
-                            closingPanelId,
-                        )
-                    ) {
-                        return null;
-                    }
-
-                    const index =
-                        node.panelIds.indexOf(
-                            closingPanelId,
-                        );
-
-                    /*
-                     * Először a következő,
-                     * majd az előző tab.
-                     */
-                    return (
-                        node.panelIds[
-                        index + 1
-                        ]
-                        ??
-                        node.panelIds[
-                        index - 1
-                        ]
-                        ??
-                        null
-                    );
-                }
-
-                case "split":
-
-                    for (
-                        const child
-                        of node.children
-                    ) {
-
-                        const found =
-                            findInTabs(
-                                child,
-                            );
-
-                        if (found) {
-                            return found;
-                        }
-                    }
-
-                    return null;
-            }
-        };
-
-    const tabCandidate =
-        findInTabs(
-            layout.root,
-        );
+    const tabCandidate = findPanelInTabs(
+        window.root,
+        panelId,
+    );
 
     if (tabCandidate) {
         return tabCandidate;
@@ -188,73 +134,46 @@ export function findFocusCandidate(
      * 2. A bezárt panel közvetlen Split
      *    környezetének testvére.
      */
-    const parentSplit =
-        findPanelParentSplit(
-            layout.root,
-            closingPanelId,
-        );
+    const parentSplit = findPanelParentSplit(
+        window.root,
+        panelId,
+    );
 
     if (parentSplit) {
-
         for (
             let index = 0;
-            index <
-            parentSplit.children.length;
+            index < parentSplit.children.length;
             index++
         ) {
+            const child = parentSplit.children[index];
+            const childPanels = collectPanels(child);
 
-            const child =
-                parentSplit.children[index];
-
-            const childPanels =
-                collectPanels(
-                    child,
-                );
-
-            if (
-                !childPanels.includes(
-                    closingPanelId,
-                )
-            ) {
+            if (!childPanels.includes(panelId)) {
                 continue;
             }
 
-            /*
-             * Következő sibling.
-             */
-            const nextSibling =
-                parentSplit.children[
-                index + 1
-                ];
+            // Következő sibling.
+            const nextSibling = parentSplit.children[index + 1];
 
             if (nextSibling) {
-
-                const candidate =
-                    findPanelInNode(
-                        nextSibling,
-                        closingPanelId,
-                    );
+                const candidate = findPanelInNode(
+                    nextSibling,
+                    panelId,
+                );
 
                 if (candidate) {
                     return candidate;
                 }
             }
 
-            /*
-             * Előző sibling.
-             */
-            const previousSibling =
-                parentSplit.children[
-                index - 1
-                ];
+            // Előző sibling.
+            const previousSibling = parentSplit.children[index - 1];
 
             if (previousSibling) {
-
-                const candidate =
-                    findPanelInNode(
-                        previousSibling,
-                        closingPanelId,
-                    );
+                const candidate = findPanelInNode(
+                    previousSibling,
+                    panelId,
+                );
 
                 if (candidate) {
                     return candidate;
@@ -264,51 +183,71 @@ export function findFocusCandidate(
     }
 
     /*
-     * 3. Bármely másik dockolt panel.
+     * 3. Bármely másik panel ugyanabban
+     *    a lebegő ablakban.
      */
-    const rootPanels =
-        collectPanels(
-            layout.root,
-        ).filter(
-            panelId =>
-                panelId !==
+    const windowPanels = collectPanels(
+        window.root,
+    ).filter(
+        candidatePanelId =>
+            candidatePanelId !== panelId,
+    );
+
+    return windowPanels[0] ?? null;
+}
+
+export function findFocusCandidate(
+    layout: WorkspaceLayout,
+    closingPanelId: PanelId,
+): PanelId | null {
+    /*
+     * 1–3. Először abban az ablakban keresünk,
+     * amelyik a bezárandó panelt tartalmazza.
+     */
+    const sourceWindow = layout.floating.find(
+        window =>
+            collectPanels(window.root).includes(
                 closingPanelId,
+            ),
+    );
+
+    if (sourceWindow) {
+        const candidate = findPanelInWindow(
+            sourceWindow,
+            closingPanelId,
         );
 
-    if (rootPanels.length > 0) {
-        return rootPanels[0];
+        if (candidate) {
+            return candidate;
+        }
     }
 
     /*
      * 4. Floating fallback.
      *
-     * A legmagasabb z-indexű floating
-     * panel kapja vissza a fókuszt.
+     * Ha a bezárt panel ablakában nincs több
+     * panel, a legmagasabb z-indexű másik
+     * ablak első panelje kapja a fókuszt.
      */
-    const floatingCandidates =
-        layout.floating.filter(
-            node =>
-                node.panelId !==
-                closingPanelId,
+    const otherWindows = layout.floating
+        .filter(
+            window =>
+                window.id !== sourceWindow?.id,
+        )
+        .sort(
+            (a, b) => b.zIndex - a.zIndex,
         );
 
-    if (
-        floatingCandidates.length > 0
-    ) {
+    for (const window of otherWindows) {
+        const candidate = collectPanels(
+            window.root,
+        ).find(
+            panelId => panelId !== closingPanelId,
+        );
 
-        const topmost =
-            floatingCandidates.reduce(
-                (
-                    highest,
-                    node,
-                ) =>
-                    node.zIndex >
-                        highest.zIndex
-                        ? node
-                        : highest,
-            );
-
-        return topmost.panelId;
+        if (candidate) {
+            return candidate;
+        }
     }
 
     /*

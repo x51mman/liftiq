@@ -1,5 +1,5 @@
 import type {
-    FloatingNode,
+    FloatingWindowModel,
 } from "@model";
 
 import type {
@@ -7,7 +7,7 @@ import type {
 } from "./validation.types";
 
 export function validateFloatingNode(
-    node: FloatingNode,
+    node: FloatingWindowModel,
 ): ValidationIssue[] {
 
     const issues:

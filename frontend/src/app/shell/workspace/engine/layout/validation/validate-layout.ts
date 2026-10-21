@@ -10,143 +10,82 @@ import type {
 import { visitLayout } from "@tree";
 
 import { validateSplitNode } from "./validate-split-node";
-
 import { validateTabsNode } from "./validate-tabs-node";
-
 import { collectDuplicatePanelIds } from "./collect-duplicate-panel-ids";
-
-import { collectDuplicateNodeIds } from "./collect-duplicate-node-ids";
-
 import { validateFloatingNode } from "./validate-floating-node";
-
-import { collectLayoutPanels } from "./collect-layout-panels";
-
-import { collectFloatingPanelIds } from "./collect-floating-panel-ids";
 
 export function validateLayout(
     layout: WorkspaceLayout,
 ): ValidationResult {
+    const issues: ValidationIssue[] = [];
 
-    const issues:
-        ValidationIssue[] = [];
+    /*
+     * Minden floating ablak saját layoutfáját
+     * bejárjuk, és összegyűjtjük a node-azonosítókat.
+     *
+     * A duplikációkat a teljes workspace-re
+     * vonatkozóan ellenőrizzük.
+     */
+    const allNodeIds = new Set<string>();
+    const duplicateNodeIds = new Set<string>();
 
-    const duplicateNodeIds =
-        collectDuplicateNodeIds(
-            layout.root,
-        );
+    for (const window of layout.floating) {
+        visitLayout(window.root, node => {
+            if (allNodeIds.has(node.id)) {
+                duplicateNodeIds.add(node.id);
+            } else {
+                allNodeIds.add(node.id);
+            }
 
-    for (
-        const nodeId
-        of duplicateNodeIds
-    ) {
+            switch (node.type) {
+                case "split":
+                    issues.push(
+                        ...validateSplitNode(node),
+                    );
+                    break;
+
+                case "tabs":
+                    issues.push(
+                        ...validateTabsNode(node),
+                    );
+                    break;
+            }
+        });
+    }
+
+    for (const nodeId of duplicateNodeIds) {
         issues.push({
-
-            code:
-                "duplicate-node-id",
-
-            message:
-                `Duplicate node id "${nodeId}".`,
-
+            code: "duplicate-node-id",
+            message: `Duplicate node id "${nodeId}".`,
             nodeId,
         });
     }
 
-    visitLayout(
-        layout.root,
-        node => {
-
-            switch (
-            node.type
-            ) {
-
-                case "split":
-
-                    issues.push(
-                        ...validateSplitNode(
-                            node,
-                        ),
-                    );
-
-                    break;
-
-                case "tabs":
-
-                    issues.push(
-                        ...validateTabsNode(
-                            node,
-                        ),
-                    );
-
-                    break;
-            }
-        },
-    );
-
-    for (
-        const floatingNode
-        of layout.floating
-    ) {
+    /*
+     * A floating ablakok saját modelljének ellenőrzése.
+     */
+    for (const floatingWindow of layout.floating) {
         issues.push(
-            ...validateFloatingNode(
-                floatingNode,
-            ),
+            ...validateFloatingNode(floatingWindow),
         );
     }
 
-    const duplicates =
-        collectDuplicatePanelIds(
-            layout,
-        );
+    /*
+     * A panelazonosítók duplikációjának ellenőrzése
+     * az egész workspace-en.
+     */
+    const duplicates = collectDuplicatePanelIds(layout);
 
-    for (
-        const panelId
-        of duplicates
-    ) {
+    for (const panelId of duplicates) {
         issues.push({
-
-            code:
-                "duplicate-panel",
-
-            message:
-                `Panel "${panelId}" appears multiple times.`,
+            code: "duplicate-panel",
+            message: `Panel "${panelId}" appears multiple times.`,
         });
     }
 
-    const layoutPanels =
-        collectLayoutPanels(
-            layout,
-        );
-
-    const floatingPanels =
-        collectFloatingPanelIds(
-            layout,
-        );
-
-    for (
-        const panelId
-        of floatingPanels
-    ) {
-        if (
-            layoutPanels.includes(
-                panelId,
-            )
-        ) {
-            issues.push({
-
-                code:
-                    "panel-floating-duplicate",
-
-                message:
-                    `Panel "${panelId}" exists both in layout and floating.`,
-            });
-        }
-    }
-
     return {
-
-        valid:
-            issues.length === 0,
-
+        valid: issues.length === 0,
         issues,
     };
+
 }
