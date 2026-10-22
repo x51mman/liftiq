@@ -7,6 +7,10 @@ import {
     createLayoutNodeId,
 } from "../id";
 
+import {
+    createPanelNode,
+} from "@model";
+
 export function createFloatingWindow(
     panelId: PanelId,
     zIndex: number,
@@ -14,11 +18,7 @@ export function createFloatingWindow(
     return {
         id: createLayoutNodeId(),
 
-        root: {
-            type: "panel",
-            id: createLayoutNodeId(),
-            panelId,
-        },
+        root: createPanelNode(panelId),
 
         x: 120,
         y: 120,

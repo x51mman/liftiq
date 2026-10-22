@@ -13,6 +13,7 @@ import type { ResizeSnapshot } from "../engine/layout/resize/resize-snapshot";
 
 import { defaultLayout, workspaceCatalog } from "../model";
 import { createDefaultPanels } from "../model/factories/default-panels";
+import { findNodeLocation, findPanelContainerLocation, } from "@tree";
 
 import {
     executeFloatPanelCommand, executeTabPanelCommand, executeActiveTabCommand,
@@ -212,23 +213,14 @@ export const useWorkspaceStore =
             targetPanelId,
         ) =>
             set((state) => {
-
-                const result =
-                    executeTabPanelCommand(
-                        state.layout.root,
-                        sourcePanelId,
-                        targetPanelId,
-                    );
+                const result = executeTabPanelCommand(
+                    state.layout,
+                    sourcePanelId,
+                    targetPanelId,
+                );
 
                 return {
-
-                    layout: {
-
-                        ...state.layout,
-
-                        root:
-                            result.layout,
-                    },
+                    layout: result.layout,
                 };
             }),
 
@@ -327,36 +319,48 @@ export const useWorkspaceStore =
                 };
             }),
 
-        resizeSplit:
-            (
-                splitId,
-                index,
-                delta,
-                containerSize,
-                snapshot,
-            ) =>
-                set((state) => {
+        resizeSplit: (
+            splitId,
+            index,
+            delta,
+            containerSize,
+            snapshot,
+        ) =>
+            set((state) => {
+                const targetWindow = state.layout.floating.find(
+                    window =>
+                        findNodeLocation(
+                            window.root,
+                            splitId,
+                        )?.node.type === "split",
+                );
 
-                    if (!state.layout.root) {
-                        return state;
-                    }
+                if (!targetWindow) {
+                    return state;
+                }
 
-                    return {
-                        layout: {
-                            ...state.layout,
-
-                            root:
-                                resizeSplitCommand(
-                                    state.layout.root,
-                                    splitId,
-                                    index,
-                                    delta,
-                                    containerSize,
-                                    snapshot,
-                                ),
-                        },
-                    };
-                }),
+                return {
+                    layout: {
+                        ...state.layout,
+                        floating: state.layout.floating.map(
+                            window =>
+                                window.id === targetWindow.id
+                                    ? {
+                                        ...window,
+                                        root: resizeSplitCommand(
+                                            window.root,
+                                            splitId,
+                                            index,
+                                            delta,
+                                            containerSize,
+                                            snapshot,
+                                        ),
+                                    }
+                                    : window,
+                        ),
+                    },
+                };
+            }),
 
         splitPanel: (
             targetPanelId,
@@ -364,31 +368,38 @@ export const useWorkspaceStore =
             direction,
         ) =>
             set((state) => {
+                const targetWindow = state.layout.floating.find(
+                    window =>
+                        findPanelContainerLocation(
+                            window.root,
+                            targetPanelId,
+                        ) !== null,
+                );
 
-                if (!state.layout.root) {
+                if (!targetWindow) {
                     return state;
                 }
 
-                const result =
-                    splitPanelCommand({
-
-                        layout:
-                            state.layout.root,
-
-                        panels:
-                            state.panels,
-
-                        targetPanelId,
-
-                        newPanelId,
-
-                        direction,
-                    });
+                const result = splitPanelCommand({
+                    layout: targetWindow.root,
+                    panels: state.panels,
+                    targetPanelId,
+                    newPanelId,
+                    direction,
+                });
 
                 return {
                     layout: {
                         ...state.layout,
-                        root: result.layout,
+                        floating: state.layout.floating.map(
+                            window =>
+                                window.id === targetWindow.id
+                                    ? {
+                                        ...window,
+                                        root: result.layout,
+                                    }
+                                    : window,
+                        ),
                     },
                     panels: result.panels,
                 };
