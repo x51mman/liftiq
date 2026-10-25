@@ -29,6 +29,7 @@ export interface WorkspaceDefinition {
 export interface WorkspaceState {
     activeWorkspaceId: WorkspaceId;
     activePanelId: PanelId | null;
+    activeWindowId: string | null;
     workspaces: WorkspaceDefinition[];
     panels: WorkspacePanel[];
     layout: WorkspaceLayout;

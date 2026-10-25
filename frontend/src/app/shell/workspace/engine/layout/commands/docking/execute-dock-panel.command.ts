@@ -84,7 +84,13 @@ export function executeDockPanelCommand(
             sourcePanelId,
         ) !== null;
 
-    if (!sourceStillPresent) {
+    const targetStillPresent =
+        findPanelContainerLocation(
+            nextTargetRoot,
+            targetPanelId,
+        ) !== null;
+
+    if (!sourceStillPresent || !targetStillPresent) {
         return { layout };
     }
 

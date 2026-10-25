@@ -32,6 +32,12 @@ export function executeBringFloatingWindowToFrontCommand(
             layout.floating,
         );
 
+    if (target.zIndex === nextZIndex - 1) {
+        return {
+            layout,
+        };
+    }
+
     const updatedTarget = {
         ...target,
         zIndex: nextZIndex,
@@ -39,17 +45,11 @@ export function executeBringFloatingWindowToFrontCommand(
 
     return {
         layout: {
-
             ...layout,
-
-            floating: [
-                ...layout.floating.filter(
-                    node =>
-                        node.id !== nodeId,
-                ),
-
-                updatedTarget,
-            ],
+            floating: layout.floating.map((node) =>
+                node.id === nodeId ? updatedTarget : node,
+            ),
         },
     };
+
 }

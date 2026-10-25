@@ -10,6 +10,7 @@ import type { FloatingWindowModel } from "@model";
 
 import { useWorkspaceStore } from "../store";
 import { LayoutRenderer } from "./LayoutRenderer";
+import { FloatingWindowHeader } from "./FloatingWindowHeader";
 
 import { findPanelUnderPointer } from "./find-panel-under-pointer";
 import { getPanelElement } from "./panel-dom-registry";
@@ -61,13 +62,19 @@ export function FloatingWindow({ node }: Props) {
         (state) => state.closeFloatingWindow,
     );
 
-    const bringFloatingWindowToFront = useWorkspaceStore(
-        (state) => state.bringFloatingWindowToFront,
+    const activateFloatingWindow = useWorkspaceStore(
+        (state) => state.activateFloatingWindow,
     );
 
     const dockPanel = useWorkspaceStore(
         (state) => state.dockPanel,
     );
+
+    const activeWindowId = useWorkspaceStore(
+        (state) => state.activeWindowId,
+    );
+
+    const isActive = activeWindowId === node.id;
 
     /*
      * Csak a közvetlenül egyetlen PanelNode-ból álló
@@ -84,13 +91,39 @@ export function FloatingWindow({ node }: Props) {
     const isSimpleWindow = simplePanelId !== null;
 
     const [isHeaderVisible, setIsHeaderVisible] = useState(false);
-    const [isPointerOverHeader, setIsPointerOverHeader] = useState(false);
+
+    const headerHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null,
+    );
+
+    const cancelHeaderHideTimeout = useCallback(() => {
+        if (headerHideTimeoutRef.current !== null) {
+            clearTimeout(headerHideTimeoutRef.current);
+            headerHideTimeoutRef.current = null;
+        }
+    }, []);
+
+    const showWindowHeader = useCallback(() => {
+        cancelHeaderHideTimeout();
+        setIsHeaderVisible(true);
+    }, [cancelHeaderHideTimeout]);
+
+    const scheduleHeaderHide = useCallback(() => {
+        cancelHeaderHideTimeout();
+
+        headerHideTimeoutRef.current = setTimeout(() => {
+            headerHideTimeoutRef.current = null;
+
+            if (!dragRef.current.isDragging) {
+                setIsHeaderVisible(false);
+            }
+        }, 400);
+    }, [cancelHeaderHideTimeout]);
 
     const nodeRef = useRef(node);
     const dragRef = useRef<DragState>(INITIAL_DRAG_STATE);
 
     const windowRef = useRef<HTMLDivElement>(null);
-    const headerRef = useRef<HTMLDivElement>(null);
 
     const rafRef = useRef<number | null>(null);
 
@@ -298,13 +331,11 @@ export function FloatingWindow({ node }: Props) {
             }
 
             clearDockPreview();
-            setIsHeaderVisible(isPointerOverHeader);
         },
         [
             clearDockPreview,
             dockPanel,
             handlePointerMove,
-            isPointerOverHeader,
             isSimpleWindow,
             moveFloatingWindow,
             simplePanelId,
@@ -338,8 +369,9 @@ export function FloatingWindow({ node }: Props) {
             }
 
             lastPreviewRef.current = null;
+            cancelHeaderHideTimeout();
         };
-    }, [handlePointerMove, handlePointerUp]);
+    }, [cancelHeaderHideTimeout, handlePointerMove, handlePointerUp]);
 
     const handleHeaderPointerDown = useCallback(
         (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -357,7 +389,9 @@ export function FloatingWindow({ node }: Props) {
             event.preventDefault();
             event.stopPropagation();
 
-            bringFloatingWindowToFront(nodeRef.current.id);
+            activateFloatingWindow(nodeRef.current.id);
+
+            showWindowHeader();
 
             if (!isSimpleWindow) {
                 clearDockPreview();
@@ -397,11 +431,12 @@ export function FloatingWindow({ node }: Props) {
             );
         },
         [
-            bringFloatingWindowToFront,
+            activateFloatingWindow,
             clearDockPreview,
             handlePointerMove,
             handlePointerUp,
             isSimpleWindow,
+            showWindowHeader,
         ],
     );
 
@@ -412,49 +447,41 @@ export function FloatingWindow({ node }: Props) {
      */
     const handleWindowPointerMove = useCallback(
         (event: ReactPointerEvent<HTMLDivElement>) => {
-            if (
-                dragRef.current.isDragging ||
-                isPointerOverHeader
-            ) {
+            if (dragRef.current.isDragging) {
+                showWindowHeader();
                 return;
             }
 
             const rect = event.currentTarget.getBoundingClientRect();
             const distanceFromTop = event.clientY - rect.top;
 
-            setIsHeaderVisible(
-                distanceFromTop <= HEADER_EDGE_THRESHOLD,
-            );
+            if (distanceFromTop <= HEADER_EDGE_THRESHOLD) {
+                showWindowHeader();
+            }
         },
-        [isPointerOverHeader],
+        [showWindowHeader],
+
     );
 
     const handleWindowPointerLeave = useCallback(() => {
-        if (
-            !dragRef.current.isDragging &&
-            !isPointerOverHeader
-        ) {
-            setIsHeaderVisible(false);
+        if (dragRef.current.isDragging) {
+            return;
         }
-    }, [isPointerOverHeader]);
+        scheduleHeaderHide();
 
-    const handleHeaderPointerEnter = useCallback(() => {
-        setIsPointerOverHeader(true);
-        setIsHeaderVisible(true);
-    }, []);
+    }, [scheduleHeaderHide]);
 
-    const handleHeaderPointerLeave = useCallback(() => {
-        setIsPointerOverHeader(false);
-
-        if (!dragRef.current.isDragging) {
-            setIsHeaderVisible(false);
-        }
-    }, []);
 
     return (
         <div
             ref={windowRef}
-            className="absolute overflow-hidden rounded-md shadow-lg"
+            className={[
+                "absolute overflow-hidden rounded-md border",
+                "transition-[border-color,box-shadow] duration-150",
+                isActive
+                    ? "border-green-400/70 shadow-[0_0_12px_rgba(34,211,238,0.16)]"
+                    : "border-slate-700/70 shadow-lg",
+            ].join(" ")}
             style={{
                 left: node.x,
                 top: node.y,
@@ -463,11 +490,12 @@ export function FloatingWindow({ node }: Props) {
                 zIndex: node.zIndex,
             }}
             onPointerDown={() => {
-                bringFloatingWindowToFront(node.id);
+                activateFloatingWindow(node.id);
             }}
             onPointerMove={handleWindowPointerMove}
             onPointerLeave={handleWindowPointerLeave}
         >
+
             <div className="h-full w-full">
                 <LayoutRenderer node={node.root} />
             </div>
@@ -476,91 +504,14 @@ export function FloatingWindow({ node }: Props) {
          * A fejléc abszolút pozicionált, ezért nem vesz el
          * helyet a paneltartalomtól.
          */}
-            <div
-                ref={headerRef}
-                className={`
-                absolute
-                inset-x-0
-                top-0
-                z-50
-                flex
-                h-8
-                items-center
-                justify-between
-                border-b
-                border-cyan-400/20
-                bg-slate-950/90
-                px-3
-                backdrop-blur-md
-                transition-opacity
-                duration-200
-                ${isHeaderVisible
-                        ? "pointer-events-auto opacity-100"
-                        : "pointer-events-none opacity-0"
-                    }
-            `}
+            <FloatingWindowHeader
+                isSimpleWindow={isSimpleWindow}
+                isVisible={isHeaderVisible}
+                onShow={showWindowHeader}
+                onHide={scheduleHeaderHide}
                 onPointerDown={handleHeaderPointerDown}
-                onPointerEnter={handleHeaderPointerEnter}
-                onPointerLeave={handleHeaderPointerLeave}
-            >
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span
-                        className="
-                        h-1.5
-                        w-1.5
-                        shrink-0
-                        rounded-full
-                        bg-cyan-400
-                        shadow-[0_0_8px_rgba(34,211,238,0.8)]
-                    "
-                    />
-
-                    <span
-                        className="
-                        select-none
-                        truncate
-                        text-[10px]
-                        font-medium
-                        uppercase
-                        tracking-[0.18em]
-                        text-cyan-100/80
-                    "
-                    >
-                        {isSimpleWindow
-                            ? "Floating Panel"
-                            : "Floating Workspace"}
-                    </span>
-                </div>
-
-                <button
-                    type="button"
-                    aria-label="Close floating window"
-                    title="Close window"
-                    className="
-                    ml-3
-                    flex
-                    h-5
-                    w-5
-                    shrink-0
-                    items-center
-                    justify-center
-                    rounded
-                    text-slate-400
-                    transition-colors
-                    hover:bg-red-500/20
-                    hover:text-red-300
-                "
-                    onPointerDown={(event) => {
-                        event.stopPropagation();
-                    }}
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        closeFloatingWindow(nodeRef.current.id);
-                    }}
-                >
-                    ×
-                </button>
-            </div>
+                onClose={() => closeFloatingWindow(node.id)}
+            />
         </div>
     );
 

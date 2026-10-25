@@ -17,19 +17,10 @@ import {
 } from "./panel-header-dom-registry";
 
 type Props = {
-
     panelId: PanelId;
-
     isFocused?: boolean;
-
     onUndock?: () => void;
-
     onClose?: () => void;
-
-    onPointerDown?: (
-        event:
-            React.PointerEvent<HTMLDivElement>,
-    ) => void;
 };
 
 export function PanelHeader({
@@ -37,76 +28,46 @@ export function PanelHeader({
     isFocused = false,
     onUndock,
     onClose,
-    onPointerDown,
 }: Props) {
-
-    const headerRef =
-        useRef<HTMLDivElement>(
-            null,
-        );
+    const headerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-
-        const element =
-            headerRef.current;
+        const element = headerRef.current;
 
         if (!element) {
             return;
         }
 
-        registerPanelHeaderElement(
-            panelId,
-            element,
-        );
+        registerPanelHeaderElement(panelId, element);
 
         return () => {
-
-            unregisterPanelHeaderElement(
-                panelId,
-            );
+            unregisterPanelHeaderElement(panelId);
         };
+    }, [panelId]);
 
-    }, [
-        panelId,
-    ]);
-
-    const definition =
-        panelDefinitions[
-        panelId
-        ];
+    const definition = panelDefinitions[panelId];
 
     if (!definition) {
         return null;
     }
 
-    const Icon =
-        definition.icon;
+    const Icon = definition.icon;
 
     return (
-
         <div
             ref={headerRef}
-            onPointerDown={
-                onPointerDown
-            }
             className={`
-                flex
-                h-10
-                shrink-0
-
-                items-center
-                justify-between
-
-                border-b
-
-                px-3
-
-                select-none
-
-                transition-[border-color,background-color,box-shadow]
-                duration-150
-
-                ${isFocused
+            flex
+            h-10
+            shrink-0
+            items-center
+            justify-between
+            border-b
+            px-3
+            select-none
+            transition-[border-color,background-color,box-shadow]
+            duration-150
+            ${isFocused
                     ? `
                         border-cyan-400/60
                         bg-cyan-500/10
@@ -117,103 +78,84 @@ export function PanelHeader({
                         bg-background
                     `
                 }
-            `}
+        `}
         >
-
             <div
                 className="
-                    flex
-                    shrink-0
-                    items-center
-                    gap-2
-                "
+                flex
+                shrink-0
+                items-center
+                gap-2
+            "
             >
-
-                <Icon
-                    size={16}
-                />
+                <Icon size={16} />
 
                 <span
                     className="
-                        shrink-0
-                        whitespace-nowrap
-                        text-sm
-                    "
+                    shrink-0
+                    whitespace-nowrap
+                    text-sm
+                "
                 >
-                    {
-                        definition.title
-                    }
+                    {definition.title}
                 </span>
-
             </div>
 
             <div
                 className="
-                    flex
-                    shrink-0
-                    items-center
-                    gap-2
-                "
+                flex
+                shrink-0
+                items-center
+                gap-2
+            "
             >
-
                 {onUndock && (
-
                     <button
                         type="button"
-                        onPointerDown={
-                            event =>
-                                event.stopPropagation()
+                        onPointerDown={(event) =>
+                            event.stopPropagation()
                         }
-                        onClick={
-                            onUndock
-                        }
+                        onClick={onUndock}
                         className="
-                            shrink-0
-                            rounded
-                            px-2
-                            text-sm
-                            opacity-70
-                            transition-opacity
-                            hover:opacity-100
-                        "
+                        shrink-0
+                        rounded
+                        px-2
+                        text-sm
+                        opacity-70
+                        transition-opacity
+                        hover:opacity-100
+                    "
                         title="Undock"
                         aria-label="Undock"
                     >
                         ↗
                     </button>
-
                 )}
 
                 {onClose && (
-
                     <button
                         type="button"
-                        onPointerDown={
-                            event =>
-                                event.stopPropagation()
+                        onPointerDown={(event) =>
+                            event.stopPropagation()
                         }
-                        onClick={
-                            onClose
-                        }
+                        onClick={onClose}
                         className="
-                            shrink-0
-                            rounded
-                            px-2
-                            text-sm
-                            opacity-70
-                            transition-opacity
-                            hover:opacity-100
-                        "
+                        shrink-0
+                        rounded
+                        px-2
+                        text-sm
+                        opacity-70
+                        transition-opacity
+                        hover:opacity-100
+                    "
                         title="Close"
                         aria-label="Close"
                     >
                         ×
                     </button>
-
                 )}
-
             </div>
-
         </div>
     );
+
 }

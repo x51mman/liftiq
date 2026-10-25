@@ -24,10 +24,6 @@ type Props = {
     onClose?: () => void;
 
     onFocus?: () => void;
-
-    onHeaderPointerDown?: (
-        event: React.PointerEvent<HTMLDivElement>,
-    ) => void;
 };
 
 export function PanelFrame({
@@ -37,7 +33,6 @@ export function PanelFrame({
     onUndock,
     onClose,
     onFocus,
-    onHeaderPointerDown,
 }: Props) {
 
     const activePanelId =
@@ -106,8 +101,6 @@ export function PanelFrame({
                     onUndock={onUndock}
 
                     onClose={onClose}
-
-                    onPointerDown={onHeaderPointerDown}
                 />
 
             )}

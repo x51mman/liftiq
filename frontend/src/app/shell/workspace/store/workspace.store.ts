@@ -16,7 +16,7 @@ import { createDefaultPanels } from "../model/factories/default-panels";
 import { findNodeLocation, findPanelContainerLocation, } from "@tree";
 
 import {
-    executeFloatPanelCommand, executeTabPanelCommand, executeActiveTabCommand,
+    executeTabPanelCommand, executeActiveTabCommand,
     executeClosePanelCommand, executeTogglePanelCommand,
     resizeSplitCommand, splitPanelCommand, executeAddPanelCommand,
     executeRestoreWorkspaceCommand, executeMoveFloatingWindowCommand,
@@ -62,10 +62,6 @@ interface WorkspaceStore
         target: PanelId,
     ): void;
 
-    floatPanel(
-        panelId: PanelId,
-    ): void;
-
     moveFloatingWindow(
         nodeId: string,
         x: number,
@@ -82,8 +78,8 @@ interface WorkspaceStore
         nodeId: string,
     ): void;
 
-    bringFloatingWindowToFront(
-        nodeId: string,
+    activateFloatingWindow(
+        nodeId: string
     ): void;
 
     resizeSplit: (
@@ -136,6 +132,8 @@ export const useWorkspaceStore =
         activeWorkspaceId: "dashboard",
 
         activePanelId: null,
+
+        activeWindowId: null,
 
         workspaces: workspaceCatalog,
 
@@ -224,24 +222,6 @@ export const useWorkspaceStore =
                 };
             }),
 
-        floatPanel: (
-            panelId,
-        ) =>
-            set((state) => {
-
-                const result =
-                    executeFloatPanelCommand(
-                        state.layout,
-                        panelId,
-                    );
-
-                return {
-
-                    layout:
-                        result.layout,
-                };
-            }),
-
         moveFloatingWindow: (
             nodeId,
             x,
@@ -301,10 +281,15 @@ export const useWorkspaceStore =
                 };
             }),
 
-        bringFloatingWindowToFront: (
-            nodeId,
-        ) =>
+        activateFloatingWindow: (nodeId) =>
             set((state) => {
+                const targetWindow = state.layout.floating.find(
+                    (window) => window.id === nodeId,
+                );
+
+                if (!targetWindow) {
+                    return {};
+                }
 
                 const result =
                     executeBringFloatingWindowToFrontCommand(
@@ -313,9 +298,8 @@ export const useWorkspaceStore =
                     );
 
                 return {
-
-                    layout:
-                        result.layout,
+                    activeWindowId: nodeId,
+                    layout: result.layout,
                 };
             }),
 
